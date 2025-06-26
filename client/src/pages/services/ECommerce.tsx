@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { SEO } from "@/components/SEO"
 import { useNavigate } from "react-router-dom"
+import { pagesSEO, generateServiceSchema } from "@/data/seoData"
 
 const features = [
   {
@@ -126,32 +127,48 @@ export function ECommerce() {
     window.scrollTo(0, 0)
   }, [])
 
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    "name": "E-commerce Development Services",
-    "description": "Professional e-commerce website development with custom shopping carts, secure payment processing, and mobile optimization.",
-    "provider": {
-      "@type": "Organization",
-      "name": "WebNaster.com",
-      "url": "https://webnaster.com"
-    },
-    "areaServed": "Minneapolis-St. Paul Metro Area",
-    "serviceType": "E-commerce Development",
-    "offers": {
-      "@type": "Offer",
-      "description": "Custom e-commerce solutions starting from $2,500"
+  const breadcrumbs = [
+    { name: "Home", url: "/" },
+    { name: "Services", url: "/services" },
+    { name: "E-commerce", url: "/services/ecommerce" }
+  ]
+
+  const serviceSchema = generateServiceSchema({
+    name: "E-commerce Development",
+    description: "Custom e-commerce solutions that drive sales including online stores, payment processing, and inventory management."
+  })
+
+  const ecommerceSchema = [
+    serviceSchema,
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": pagesSEO.ecommerce.title,
+      "description": pagesSEO.ecommerce.description,
+      "url": "https://webnaster.com/services/ecommerce",
+      "mainEntity": {
+        "@type": "Service",
+        "name": "E-commerce Development Services",
+        "description": "Custom e-commerce solutions that drive sales and grow your online business with secure, scalable platforms.",
+        "serviceType": "E-commerce Development",
+        "provider": {
+          "@type": "Organization",
+          "name": "WebNaster.com"
+        }
+      }
     }
-  }
+  ]
 
   return (
     <>
       <SEO
-        title="E-commerce Development Services - Custom Online Stores"
-        description="Professional e-commerce development services in Minneapolis. Custom online stores with secure payments, mobile optimization, and conversion-focused design. Shopify, WooCommerce & custom solutions."
-        keywords="e-commerce development, online store design, Shopify development, WooCommerce, custom e-commerce, Minneapolis e-commerce developer"
+        title={pagesSEO.ecommerce.title}
+        description={pagesSEO.ecommerce.description}
+        keywords={pagesSEO.ecommerce.keywords}
         canonicalUrl="/services/ecommerce"
-        structuredData={structuredData}
+        ogType={pagesSEO.ecommerce.ogType}
+        structuredData={ecommerceSchema}
+        breadcrumbs={breadcrumbs}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">

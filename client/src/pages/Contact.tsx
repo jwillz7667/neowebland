@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { SEO } from "@/components/SEO"
 import { useToast } from "@/hooks/useToast"
+import { pagesSEO, businessSchema } from "@/data/seoData"
 
 const contactInfo = [
   {
@@ -136,34 +137,40 @@ export function Contact() {
     }
   }
 
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "ContactPage",
-    "name": "Contact WebNaster.com",
-    "description": "Get in touch with WebNaster.com for premium web design and development services. Free consultation available.",
-    "url": "https://webnaster.com/contact",
-    "mainEntity": {
-      "@type": "Organization",
-      "name": "WebNaster.com",
-      "telephone": "+1-612-930-1390",
-      "email": "hello@webnaster.com",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Minneapolis",
-        "addressRegion": "MN",
-        "addressCountry": "US"
+  const breadcrumbs = [
+    { name: "Home", url: "/" },
+    { name: "Contact", url: "/contact" }
+  ]
+
+  const contactSchema = [
+    businessSchema,
+    {
+      "@context": "https://schema.org",
+      "@type": "ContactPage",
+      "name": pagesSEO.contact.title,
+      "description": pagesSEO.contact.description,
+      "url": "https://webnaster.com/contact",
+      "mainEntity": {
+        "@type": "ContactPoint",
+        "contactType": "customer service",
+        "email": "info@webnaster.com",
+        "telephone": "+1-555-123-4567",
+        "areaServed": "US",
+        "availableLanguage": "English"
       }
     }
-  }
+  ]
 
   return (
     <>
       <SEO
-        title="Contact Us - Get Your Free Web Design Consultation"
-        description="Ready to transform your digital presence? Contact WebNaster.com for a free consultation. Expert web design and development services in Minneapolis and nationwide."
-        keywords="contact WebNaster, free consultation, web design quote, Minneapolis web developer, get in touch"
+        title={pagesSEO.contact.title}
+        description={pagesSEO.contact.description}
+        keywords={pagesSEO.contact.keywords}
         canonicalUrl="/contact"
-        structuredData={structuredData}
+        ogType={pagesSEO.contact.ogType}
+        structuredData={contactSchema}
+        breadcrumbs={breadcrumbs}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">

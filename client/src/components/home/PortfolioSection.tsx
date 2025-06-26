@@ -1,35 +1,82 @@
-import { useRef, useState } from "react"
-import { motion, useInView } from "framer-motion"
-import { Sparkles, Eye, Wand2, Palette, Code, Zap, Clock, DollarSign } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { generateWebsiteMockup, getProjectQuote } from "@/api/mockup"
-import { useToast } from "@/hooks/useToast"
+import React, { useState, useCallback } from 'react';
 
-// Type definitions for mockup data
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { 
+  Maximize, 
+  Monitor, 
+  Smartphone, 
+  Tablet, 
+  Minimize, 
+  ZoomIn, 
+  ZoomOut,
+  Eye,
+  Palette,
+  Code,
+  X
+} from 'lucide-react';
+
+// Enhanced Type Definitions
+interface TemplateInfo {
+  templateId: string;
+  name: string;
+  description: string;
+  colorScheme: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+    surface: string;
+    text: string;
+    textLight: string;
+    success: string;
+    neutral: string;
+  };
+  typography: {
+    headings: string;
+    body: string;
+    sizes: {
+      h1: string;
+      h2: string;
+      h3: string;
+      h4: string;
+      body: string;
+      small: string;
+    };
+  };
+  spacing: {
+    sectionPadding: string;
+    containerPadding: string;
+    elementSpacing: string;
+  };
+  layout: {
+    type: string;
+    headerStyle: string;
+    heroStyle: string;
+    sectionLayout: string;
+  };
+}
+
 interface MockupData {
-  companyInfo?: {
+  templateUsed: string;
+  template?: TemplateInfo;
+  companyInfo: {
     name: string;
     tagline: string;
     description: string;
-    mission: string;
-    founded: string;
-    location: string;
+    phone: string;
+    email: string;
+    address: string;
   };
-  header?: {
+  header: {
     logo: string;
-    logoStyle: string;
     navigation: string[];
     style: string;
     layout: string;
   };
-  hero?: {
+  hero: {
     title: string;
     subtitle: string;
     cta: string;
@@ -38,1271 +85,1066 @@ interface MockupData {
     layout: string;
     heroImage: string;
   };
-  sections?: Array<{
+  sections: Array<{
     name: string;
     title: string;
     content: string;
-    highlights?: string[];
-    layout: string;
-    visual?: string;
-    services?: Array<{
-      name: string;
-      description: string;
-      features: string[];
-    }>;
-    benefits?: Array<{
-      title: string;
-      description: string;
-      icon: string;
-    }>;
-    testimonials?: Array<{
-      quote: string;
-      author: string;
-      position: string;
-      company: string;
-      rating: number;
-    }>;
-    contactInfo?: {
-      phone: string;
-      email: string;
-      address: string;
-      hours: string;
-    };
-    form?: {
-      fields: string[];
-      submitText: string;
-    };
+    [key: string]: any;
   }>;
-  designSystem?: {
-    colorPalette: Record<string, string>;
-    typography: {
-      headings: string;
-      body: string;
-      style: string;
-      sizes?: Record<string, string>;
-      headingWeights?: string;
-    };
-    spacing?: Record<string, string>;
-    borderRadius?: string;
-    shadows?: string;
-    layoutStyle: string;
-    visualStyle: string;
+  designSystem: {
+    templateId: string;
+    colorPalette: TemplateInfo['colorScheme'];
+    typography: TemplateInfo['typography'];
+    spacing: TemplateInfo['spacing'];
+    layout: TemplateInfo['layout'];
+    customizations?: string;
   };
-  responsiveDesign?: Record<string, Record<string, string>>;
-  features?: string[];
-  technicalRecommendations?: string[];
-  contentStrategy?: {
+  features: string[];
+  technicalRecommendations: string[];
+  contentStrategy: {
     tone: string;
     messaging: string;
     seoKeywords: string[];
     callsToAction: string[];
   };
-  additionalPages?: Array<{
-    name: string;
-    purpose: string;
-    keyContent: string;
-  }>;
 }
 
 interface QuoteData {
-  pricing?: {
-    designCost?: number;
-    developmentCost?: number;
-    featuresCost?: number;
-    testingCost?: number;
-    totalCost?: number;
-  };
-  timeline?: {
-    design?: string;
-    development?: string;
-    testing?: string;
-    total?: string;
-  };
-  breakdown?: Array<{
-    phase: string;
-    duration: string;
-    cost?: number;
-    description: string;
-  }>;
-  included?: string[];
-  optional?: Array<{
-    feature: string;
-    cost: number;
-    description: string;
-  }>;
-  recommendations?: string[];
-  nextSteps?: string[];
+  projectType: string;
+  timeline: string;
+  budget: string;
+  features: string[];
+  timeline_details: string;
+  included_services: string[];
+  optional_additions: string[];
+  total_cost: string;
+  next_steps: string[];
 }
 
-export function PortfolioSection() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: "-100px" })
-  const [isGeneratorOpen, setIsGeneratorOpen] = useState(false)
-  const [mockupData, setMockupData] = useState<MockupData | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [quoteLoading, setQuoteLoading] = useState(false)
-  const [quote, setQuote] = useState<QuoteData | null>(null)
-  const { toast } = useToast()
-
-  const [formData, setFormData] = useState({
-    companyName: "",
-    industry: "",
-    description: "",
-    targetAudience: "",
-    preferredColors: "",
-    websiteType: "",
-    features: ""
-  })
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+// Mock Services Data
+const mockServices = [
+  {
+    _id: '1',
+    name: 'AI Website Mockup Generator',
+    description: 'Professional website designs with AI-powered customization',
+    category: 'Web Design',
+    features: ['Template-based designs', 'Industry-specific layouts', 'Responsive mockups']
   }
+];
 
-  const generateMockup = async () => {
-    if (!formData.companyName || !formData.industry || !formData.description) {
-      toast({
-        title: "Error",
-        description: "Please fill in company name, industry, and description",
-        variant: "destructive",
-      })
-      return
-    }
+// Viewport Size Options
+type ViewportSize = 'small' | 'medium' | 'large' | 'mobile' | 'tablet' | 'desktop';
 
-    try {
-      setLoading(true)
-      const mockup = await generateWebsiteMockup(formData)
-      setMockupData(mockup)
-      toast({
-        title: "Success",
-        description: "AI-powered website mockup generated successfully!",
-      })
-    } catch (error: unknown) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred",
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
-    }
+interface ViewportConfig {
+  name: string;
+  width: string;
+  scale: number;
+  icon: React.ReactNode;
+  description: string;
+}
+
+const viewportSizes: Record<ViewportSize, ViewportConfig> = {
+  small: {
+    name: 'Small',
+    width: '400px',
+    scale: 0.4,
+    icon: <Minimize className="w-4 h-4" />,
+    description: 'Overview scale (40%)'
+  },
+  medium: {
+    name: 'Medium', 
+    width: '600px',
+    scale: 0.6,
+    icon: <Monitor className="w-4 h-4" />,
+    description: 'Default scale (60%)'
+  },
+  large: {
+    name: 'Large',
+    width: '800px',
+    scale: 0.8,
+    icon: <ZoomIn className="w-4 h-4" />,
+    description: 'Detailed scale (80%)'
+  },
+  mobile: {
+    name: 'Mobile',
+    width: '375px',
+    scale: 1,
+    icon: <Smartphone className="w-4 h-4" />,
+    description: 'Mobile view'
+  },
+  tablet: {
+    name: 'Tablet',
+    width: '768px',
+    scale: 0.7,
+    icon: <Tablet className="w-4 h-4" />,
+    description: 'Tablet view'
+  },
+  desktop: {
+    name: 'Desktop',
+    width: '1200px',
+    scale: 0.5,
+    icon: <Monitor className="w-4 h-4" />,
+    description: 'Desktop view'
   }
+};
 
-  const generateQuote = async () => {
-    if (!mockupData) return
+// Enhanced Mockup Renderer Component
+const MockupRenderer: React.FC<{
+  mockup: MockupData;
+  viewportSize: ViewportSize;
+  isFullScreen?: boolean;
+}> = ({ mockup, viewportSize, isFullScreen = false }) => {
+  const viewport = viewportSizes[viewportSize];
+  const colors = mockup.designSystem.colorPalette;
+  const typography = mockup.designSystem.typography;
+  const spacing = mockup.designSystem.spacing;
 
-    try {
-      setQuoteLoading(true)
-      const quoteData = await getProjectQuote({
-        ...formData,
-        mockup: mockupData
-      })
-      setQuote(quoteData)
-      toast({
-        title: "Success",
-        description: "Professional quote generated by AI!",
-      })
-    } catch (error: unknown) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred",
-        variant: "destructive",
-      })
-    } finally {
-      setQuoteLoading(false)
-    }
-  }
+  const containerStyle: React.CSSProperties = {
+    width: isFullScreen ? '100%' : viewport.width,
+    transform: isFullScreen ? 'none' : `scale(${viewport.scale})`,
+    transformOrigin: 'top left',
+    backgroundColor: colors.background,
+    fontFamily: typography.body,
+    color: colors.text,
+    overflow: 'hidden',
+    boxShadow: isFullScreen ? 'none' : '0 4px 20px rgba(0,0,0,0.1)',
+    borderRadius: isFullScreen ? '0' : '8px',
+    border: isFullScreen ? 'none' : '1px solid #e0e0e0'
+  };
 
-  const resetGenerator = () => {
-    setFormData({
-      companyName: "",
-      industry: "",
-      description: "",
-      targetAudience: "",
-      preferredColors: "",
-      websiteType: "",
-      features: ""
-    })
-    setMockupData(null)
-    setQuote(null)
-  }
+  const headerStyle: React.CSSProperties = {
+    backgroundColor: colors.background,
+    borderBottom: `1px solid ${colors.neutral}`,
+    padding: '1rem 2rem',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    position: 'sticky',
+    top: 0,
+    zIndex: 10
+  };
+
+  const logoStyle: React.CSSProperties = {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    color: colors.primary,
+    fontFamily: typography.headings
+  };
+
+  const navStyle: React.CSSProperties = {
+    display: 'flex',
+    gap: '2rem',
+    listStyle: 'none',
+    margin: 0,
+    padding: 0
+  };
+
+  const navItemStyle: React.CSSProperties = {
+    color: colors.text,
+    textDecoration: 'none',
+    fontWeight: '500',
+    transition: 'color 0.3s ease',
+    cursor: 'pointer'
+  };
+
+  const heroStyle: React.CSSProperties = {
+    background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
+    color: 'white',
+    padding: spacing.sectionPadding,
+    textAlign: 'center',
+    minHeight: '500px',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative'
+  };
+
+  const heroTitleStyle: React.CSSProperties = {
+    fontSize: typography.sizes.h1,
+    fontFamily: typography.headings,
+    fontWeight: 'bold',
+    marginBottom: '1rem',
+    lineHeight: '1.2'
+  };
+
+  const heroSubtitleStyle: React.CSSProperties = {
+    fontSize: typography.sizes.h4,
+    marginBottom: '2rem',
+    opacity: 0.9,
+    maxWidth: '600px'
+  };
+
+  const ctaButtonStyle: React.CSSProperties = {
+    backgroundColor: colors.accent,
+    color: 'white',
+    padding: '1rem 2rem',
+    fontSize: '1.1rem',
+    fontWeight: 'bold',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    transition: 'transform 0.3s ease',
+    textDecoration: 'none',
+    display: 'inline-block'
+  };
+
+  const sectionStyle: React.CSSProperties = {
+    padding: spacing.sectionPadding,
+    borderBottom: `1px solid ${colors.neutral}`
+  };
+
+  const sectionTitleStyle: React.CSSProperties = {
+    fontSize: typography.sizes.h2,
+    fontFamily: typography.headings,
+    color: colors.primary,
+    marginBottom: '2rem',
+    textAlign: 'center'
+  };
+
+  const cardStyle: React.CSSProperties = {
+    backgroundColor: colors.surface,
+    padding: '2rem',
+    borderRadius: '8px',
+    border: `1px solid ${colors.neutral}`,
+    marginBottom: '1rem',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+  };
+
+  const serviceGridStyle: React.CSSProperties = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+    gap: '2rem',
+    marginTop: '2rem'
+  };
+
+  const testimonialStyle: React.CSSProperties = {
+    backgroundColor: colors.surface,
+    padding: '2rem',
+    borderRadius: '8px',
+    borderLeft: `4px solid ${colors.primary}`,
+    marginBottom: '2rem',
+    fontStyle: 'italic'
+  };
+
+  const footerStyle: React.CSSProperties = {
+    backgroundColor: colors.primary,
+    color: 'white',
+    padding: '3rem 2rem',
+    textAlign: 'center'
+  };
 
   return (
-    <section id="portfolio" className="py-16 px-6 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-slate-800 dark:via-purple-900/20 dark:to-slate-800" />
+    <div style={containerStyle}>
+      {/* Browser Chrome (only when not fullscreen) */}
+      {!isFullScreen && (
+        <div style={{
+          backgroundColor: '#f0f0f0',
+          padding: '0.5rem 1rem',
+          borderBottom: '1px solid #ccc',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          fontSize: '0.875rem',
+          color: '#666'
+        }}>
+          <div style={{
+            display: 'flex',
+            gap: '0.25rem'
+          }}>
+            <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5f57' }}></div>
+            <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ffbd2e' }}></div>
+            <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#28ca42' }}></div>
+          </div>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '0.25rem 0.75rem',
+            borderRadius: '4px',
+            flex: 1,
+            textAlign: 'left',
+            border: '1px solid #ddd'
+          }}>
+            https://www.{mockup.companyInfo.name.toLowerCase().replace(/\s+/g, '')}.com
+          </div>
+        </div>
+      )}
 
-      <div className="relative z-10 max-w-7xl mx-auto">
-        <motion.div
-          ref={ref}
-          initial={{ opacity: 0, y: 50 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-12"
-        >
-          <Badge variant="secondary" className="mb-4 px-4 py-2">
-            <Sparkles className="w-4 h-4 mr-2" />
-            Powered by Google Gemini 2.0
-          </Badge>
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+      {/* Website Content */}
+      <div style={{ height: isFullScreen ? '100vh' : 'auto', overflow: isFullScreen ? 'auto' : 'hidden' }}>
+        {/* Header */}
+        <header style={headerStyle}>
+          <div style={logoStyle}>{mockup.header.logo}</div>
+          <nav>
+            <ul style={navStyle}>
+              {mockup.header.navigation.map((item, index) => (
+                <li key={index}>
+                  <a href="#" style={navItemStyle}>{item}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </header>
+
+        {/* Hero Section */}
+        <section style={heroStyle}>
+          <h1 style={heroTitleStyle}>{mockup.hero.title}</h1>
+          <p style={heroSubtitleStyle}>{mockup.hero.subtitle}</p>
+          <a href="#" style={ctaButtonStyle}>{mockup.hero.cta}</a>
+        </section>
+
+        {/* Sections */}
+        {mockup.sections.map((section, index) => (
+          <section key={index} style={sectionStyle}>
+            <h2 style={sectionTitleStyle}>{section.title}</h2>
+            
+            {section.name.toLowerCase().includes('service') && section.services && (
+              <div style={serviceGridStyle}>
+                {section.services.map((service: any, serviceIndex: number) => (
+                  <div key={serviceIndex} style={cardStyle}>
+                    <h3 style={{ 
+                      color: colors.primary, 
+                      fontFamily: typography.headings,
+                      marginBottom: '1rem'
+                    }}>
+                      {service.name}
+                    </h3>
+                    <p style={{ marginBottom: '1rem', color: colors.textLight }}>
+                      {service.description}
+                    </p>
+                    {service.features && (
+                      <ul style={{ color: colors.text, paddingLeft: '1.5rem' }}>
+                        {service.features.map((feature: string, featureIndex: number) => (
+                          <li key={featureIndex} style={{ marginBottom: '0.5rem' }}>
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {section.name.toLowerCase().includes('testimonial') && section.testimonials && (
+              <div>
+                {section.testimonials.map((testimonial: any, testimonialIndex: number) => (
+                  <div key={testimonialIndex} style={testimonialStyle}>
+                    <p style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>
+                      "{testimonial.quote}"
+                    </p>
+                    <div style={{ 
+                      textAlign: 'right',
+                      fontStyle: 'normal',
+                      fontWeight: 'bold',
+                      color: colors.primary
+                    }}>
+                      - {testimonial.author}
+                      {testimonial.position && (
+                        <div style={{ 
+                          fontSize: '0.9rem', 
+                          fontWeight: 'normal',
+                          color: colors.textLight
+                        }}>
+                          {testimonial.position}
+                          {testimonial.company && `, ${testimonial.company}`}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {section.name.toLowerCase().includes('about') && (
+              <div style={{ 
+                maxWidth: '800px', 
+                margin: '0 auto',
+                lineHeight: '1.6'
+              }}>
+                <p style={{ 
+                  fontSize: '1.1rem', 
+                  color: colors.text,
+                  marginBottom: '2rem'
+                }}>
+                  {section.content}
+                </p>
+                {section.highlights && (
+                  <div style={serviceGridStyle}>
+                    {section.highlights.map((highlight: string, highlightIndex: number) => (
+                      <div key={highlightIndex} style={{
+                        ...cardStyle,
+                        textAlign: 'center'
+                      }}>
+                        <div style={{
+                          width: '60px',
+                          height: '60px',
+                          backgroundColor: colors.primary,
+                          borderRadius: '50%',
+                          margin: '0 auto 1rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          fontSize: '1.5rem'
+                        }}>
+                          ✓
+                        </div>
+                        <p style={{ 
+                          fontWeight: 'bold',
+                          color: colors.primary
+                        }}>
+                          {highlight}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {section.name.toLowerCase().includes('contact') && (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                gap: '3rem',
+                marginTop: '2rem'
+              }}>
+                <div style={cardStyle}>
+                  <h3 style={{ 
+                    color: colors.primary,
+                    fontFamily: typography.headings,
+                    marginBottom: '1.5rem'
+                  }}>
+                    Contact Information
+                  </h3>
+                  {section.contactInfo && (
+                    <div style={{ lineHeight: '2' }}>
+                      <p><strong>Phone:</strong> {section.contactInfo.phone}</p>
+                      <p><strong>Email:</strong> {section.contactInfo.email}</p>
+                      <p><strong>Address:</strong> {section.contactInfo.address}</p>
+                      {section.contactInfo.hours && (
+                        <p><strong>Hours:</strong> {section.contactInfo.hours}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div style={cardStyle}>
+                  <h3 style={{ 
+                    color: colors.primary,
+                    fontFamily: typography.headings,
+                    marginBottom: '1.5rem'
+                  }}>
+                    Send us a Message
+                  </h3>
+                  <form style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <input 
+                      type="text" 
+                      placeholder="Your Name"
+                      style={{
+                        padding: '0.75rem',
+                        border: `1px solid ${colors.neutral}`,
+                        borderRadius: '4px',
+                        fontSize: '1rem'
+                      }}
+                    />
+                    <input 
+                      type="email" 
+                      placeholder="Your Email"
+                      style={{
+                        padding: '0.75rem',
+                        border: `1px solid ${colors.neutral}`,
+                        borderRadius: '4px',
+                        fontSize: '1rem'
+                      }}
+                    />
+                    <textarea 
+                      placeholder="Your Message"
+                      rows={4}
+                      style={{
+                        padding: '0.75rem',
+                        border: `1px solid ${colors.neutral}`,
+                        borderRadius: '4px',
+                        fontSize: '1rem',
+                        resize: 'vertical'
+                      }}
+                    />
+                    <button 
+                      type="submit"
+                      style={{
+                        ...ctaButtonStyle,
+                        width: '100%',
+                        marginTop: '1rem'
+                      }}
+                    >
+                      {section.form?.submitText || 'Send Message'}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Default content for other sections */}
+            {!section.name.toLowerCase().includes('service') &&
+             !section.name.toLowerCase().includes('testimonial') &&
+             !section.name.toLowerCase().includes('about') &&
+             !section.name.toLowerCase().includes('contact') && (
+              <div style={{ 
+                maxWidth: '800px', 
+                margin: '0 auto',
+                lineHeight: '1.6',
+                textAlign: 'center'
+              }}>
+                <p style={{ 
+                  fontSize: '1.1rem', 
+                  color: colors.text
+                }}>
+                  {section.content}
+                </p>
+              </div>
+            )}
+          </section>
+        ))}
+
+        {/* Footer */}
+        <footer style={footerStyle}>
+          <div style={{ marginBottom: '2rem' }}>
+            <h3 style={{ 
+              fontSize: typography.sizes.h3,
+              fontFamily: typography.headings,
+              marginBottom: '1rem'
+            }}>
+              {mockup.companyInfo.name}
+            </h3>
+            <p style={{ fontSize: '1.1rem', opacity: 0.9 }}>
+              {mockup.companyInfo.tagline}
+            </p>
+          </div>
+          <div style={{
+            borderTop: '1px solid rgba(255,255,255,0.2)',
+            paddingTop: '2rem',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: '2rem',
+            textAlign: 'left'
+          }}>
+            <div>
+              <h4 style={{ marginBottom: '1rem', fontWeight: 'bold' }}>Contact</h4>
+              <p>{mockup.companyInfo.phone}</p>
+              <p>{mockup.companyInfo.email}</p>
+              <p>{mockup.companyInfo.address}</p>
+            </div>
+            <div>
+              <h4 style={{ marginBottom: '1rem', fontWeight: 'bold' }}>Services</h4>
+              {mockup.sections.find(s => s.name.toLowerCase().includes('service'))?.services?.slice(0, 3).map((service: any, index: number) => (
+                <p key={index} style={{ marginBottom: '0.5rem' }}>{service.name}</p>
+              ))}
+            </div>
+          </div>
+          <div style={{ 
+            textAlign: 'center',
+            marginTop: '2rem',
+            paddingTop: '2rem',
+            borderTop: '1px solid rgba(255,255,255,0.2)',
+            opacity: 0.7
+          }}>
+            <p>&copy; 2024 {mockup.companyInfo.name}. All rights reserved.</p>
+          </div>
+        </footer>
+      </div>
+    </div>
+  );
+};
+
+// Full-Screen Modal Component
+const FullScreenMockup: React.FC<{
+  mockup: MockupData;
+  isOpen: boolean;
+  onClose: () => void;
+}> = ({ mockup, isOpen, onClose }) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-none w-screen h-screen p-0 m-0">
+        <DialogHeader className="absolute top-4 right-4 z-50">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onClose}
+            className="bg-white/90 backdrop-blur-sm"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </DialogHeader>
+        <div className="w-full h-full overflow-auto">
+          <MockupRenderer mockup={mockup} viewportSize="desktop" isFullScreen={true} />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// Main Portfolio Section Component
+const PortfolioSection: React.FC = () => {
+  const [formData, setFormData] = useState({
+    companyName: '',
+    industry: '',
+    description: '',
+    targetAudience: '',
+    preferredColors: '',
+    websiteType: '',
+    features: ''
+  });
+
+  const [mockup, setMockup] = useState<MockupData | null>(null);
+  const [quote, setQuote] = useState<QuoteData | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [services, setServices] = useState(mockServices);
+  const [currentViewport, setCurrentViewport] = useState<ViewportSize>('medium');
+  const [showFullScreen, setShowFullScreen] = useState(false);
+
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  }, []);
+
+  const generateMockup = async () => {
+    if (!formData.companyName.trim()) {
+      setError('Please enter a company name');
+      return;
+    }
+
+    setIsGenerating(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/mockup/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(errorData || 'Failed to generate mockup');
+      }
+
+      const data = await response.json();
+      
+      if (data.mockup && data.quote) {
+        setMockup(data.mockup);
+        setQuote(data.quote);
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (err) {
+      console.error('Error generating mockup:', err);
+      setError(err instanceof Error ? err.message : 'Failed to generate mockup. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  return (
+    <section className="relative min-h-screen py-20 bg-gradient-to-br from-indigo-50 via-white to-purple-50 overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-40">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-100/20 to-blue-100/20"></div>
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e0e7ff' fill-opacity='0.3'%3E%3Ccircle cx='30' cy='30' r='1.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundSize: '60px 60px'
+        }}></div>
+      </div>
+      
+      <div className="relative z-10 container mx-auto px-4">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600/10 to-blue-600/10 rounded-full border border-purple-200/50 backdrop-blur-sm mb-6">
+            <span className="text-sm font-medium text-purple-700">✨ AI-Powered Design Generator</span>
+          </div>
+          <h2 className="text-5xl lg:text-6xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent mb-6 leading-tight">
             AI Website Mockup Generator
           </h2>
-          <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
-            Get professional, industry-specific website mockups and accurate development quotes powered by cutting-edge AI
+          <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+            Transform your vision into stunning, professional website designs with our cutting-edge AI technology. 
+            Get industry-specific mockups with custom content, perfect layouts, and beautiful aesthetics tailored to your business.
           </p>
+        </div>
 
-          <div className="mt-8">
-            <Dialog open={isGeneratorOpen} onOpenChange={setIsGeneratorOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 rounded-full text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
-                  <Wand2 className="w-6 h-6 mr-3" />
-                  Generate Professional Mockup
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="text-3xl bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                    AI-Powered Website Mockup Generator
-                  </DialogTitle>
-                </DialogHeader>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
+          {/* Input Form */}
+          <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500">
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center">
+                  <Palette className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                  Design Your Dream Website
+                </h3>
+              </div>
+              <p className="text-gray-600 leading-relaxed">
+                Share your vision and let our AI create a stunning, professional website mockup tailored specifically for your business.
+              </p>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="group">
+                <label className="block text-sm font-semibold text-gray-700 mb-3 group-focus-within:text-purple-600 transition-colors">
+                  Company Name *
+                </label>
+                <input
+                  type="text"
+                  name="companyName"
+                  value={formData.companyName}
+                  onChange={handleInputChange}
+                  className="w-full p-4 bg-white/50 border-2 border-gray-200/50 rounded-2xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 backdrop-blur-sm placeholder-gray-400"
+                  placeholder="Enter your company name"
+                />
+              </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Form Section */}
-                  <div className="space-y-6">
-                    <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6">
-                      <h3 className="text-xl font-semibold mb-4 flex items-center">
-                        <Code className="w-5 h-5 mr-2" />
-                        Company Information
-                      </h3>
+              <div className="group">
+                <label className="block text-sm font-semibold text-gray-700 mb-3 group-focus-within:text-purple-600 transition-colors">
+                  Industry
+                </label>
+                <select
+                  name="industry"
+                  value={formData.industry}
+                  onChange={handleInputChange}
+                  className="w-full p-4 bg-white/50 border-2 border-gray-200/50 rounded-2xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 backdrop-blur-sm text-gray-700"
+                >
+                  <option value="">Select your industry</option>
+                  <option value="restaurant">🍕 Restaurant & Food Service</option>
+                  <option value="ecommerce">🛒 E-commerce & Retail</option>
+                  <option value="healthcare">🏥 Healthcare & Medical</option>
+                  <option value="creative">🎨 Creative & Design</option>
+                  <option value="technology">💻 Technology & SaaS</option>
+                  <option value="real estate">🏠 Real Estate</option>
+                  <option value="professional services">💼 Professional Services</option>
+                  <option value="fitness">💪 Fitness & Wellness</option>
+                  <option value="education">📚 Education & Training</option>
+                  <option value="construction">🔨 Construction & Contracting</option>
+                  <option value="other">✨ Other</option>
+                </select>
+              </div>
 
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Company Name *</label>
-                          <Input
-                            value={formData.companyName}
-                            onChange={(e) => handleInputChange("companyName", e.target.value)}
-                            placeholder="Enter your company name"
-                            className="bg-white dark:bg-slate-900"
-                          />
-                        </div>
+              <div className="group">
+                <label className="block text-sm font-semibold text-gray-700 mb-3 group-focus-within:text-purple-600 transition-colors">
+                  Business Description
+                </label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  rows={4}
+                  className="w-full p-4 bg-white/50 border-2 border-gray-200/50 rounded-2xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 backdrop-blur-sm placeholder-gray-400 resize-none"
+                  placeholder="Tell us what makes your business unique and what services you offer..."
+                />
+              </div>
 
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Industry *</label>
-                          <Select value={formData.industry} onValueChange={(value) => handleInputChange("industry", value)}>
-                            <SelectTrigger className="bg-white dark:bg-slate-900">
-                              <SelectValue placeholder="Select your industry" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="technology">Technology & Software</SelectItem>
-                              <SelectItem value="healthcare">Healthcare & Medical</SelectItem>
-                              <SelectItem value="finance">Finance & Banking</SelectItem>
-                              <SelectItem value="retail">Retail & E-commerce</SelectItem>
-                              <SelectItem value="education">Education & Training</SelectItem>
-                              <SelectItem value="restaurant">Restaurant & Food</SelectItem>
-                              <SelectItem value="real-estate">Real Estate</SelectItem>
-                              <SelectItem value="consulting">Consulting & Services</SelectItem>
-                              <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                              <SelectItem value="nonprofit">Non-profit</SelectItem>
-                              <SelectItem value="other">Other</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="group">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3 group-focus-within:text-purple-600 transition-colors">
+                    Website Type
+                  </label>
+                  <select
+                    name="websiteType"
+                    value={formData.websiteType}
+                    onChange={handleInputChange}
+                    className="w-full p-4 bg-white/50 border-2 border-gray-200/50 rounded-2xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 backdrop-blur-sm text-gray-700"
+                  >
+                    <option value="">Select type</option>
+                    <option value="business">🏢 Business Website</option>
+                    <option value="ecommerce">🛍️ E-commerce Store</option>
+                    <option value="portfolio">📱 Portfolio</option>
+                    <option value="blog">📝 Blog</option>
+                    <option value="landing">🚀 Landing Page</option>
+                  </select>
+                </div>
 
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Business Description *</label>
-                          <Textarea
-                            value={formData.description}
-                            onChange={(e) => handleInputChange("description", e.target.value)}
-                            placeholder="Describe what your business does, your unique value proposition, and key services..."
-                            rows={4}
-                            className="bg-white dark:bg-slate-900"
-                          />
-                        </div>
+                <div className="group">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3 group-focus-within:text-purple-600 transition-colors">
+                    Color Preference
+                  </label>
+                  <input
+                    type="text"
+                    name="preferredColors"
+                    value={formData.preferredColors}
+                    onChange={handleInputChange}
+                    className="w-full p-4 bg-white/50 border-2 border-gray-200/50 rounded-2xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 backdrop-blur-sm placeholder-gray-400"
+                    placeholder="e.g., ocean blue, modern"
+                  />
+                </div>
+              </div>
 
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Target Audience</label>
-                          <Input
-                            value={formData.targetAudience}
-                            onChange={(e) => handleInputChange("targetAudience", e.target.value)}
-                            placeholder="Who are your ideal customers? (e.g., small businesses, millennials, professionals)"
-                            className="bg-white dark:bg-slate-900"
-                          />
-                        </div>
+              {error && (
+                <div className="p-4 bg-red-50/80 border-2 border-red-200 text-red-700 rounded-2xl backdrop-blur-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-red-500">⚠️</span>
+                    {error}
+                  </div>
+                </div>
+              )}
 
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Website Type</label>
-                          <Select value={formData.websiteType} onValueChange={(value) => handleInputChange("websiteType", value)}>
-                            <SelectTrigger className="bg-white dark:bg-slate-900">
-                              <SelectValue placeholder="Select website type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="business">Business Website</SelectItem>
-                              <SelectItem value="ecommerce">E-commerce Store</SelectItem>
-                              <SelectItem value="portfolio">Portfolio Website</SelectItem>
-                              <SelectItem value="blog">Blog/Content Site</SelectItem>
-                              <SelectItem value="landing">Landing Page</SelectItem>
-                              <SelectItem value="saas">SaaS Platform</SelectItem>
-                              <SelectItem value="marketplace">Marketplace</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+              <Button
+                onClick={generateMockup}
+                disabled={isGenerating}
+                className="w-full py-4 px-8 text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                {isGenerating ? (
+                  <div className="flex items-center gap-3">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                    Creating your masterpiece...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <span>✨</span>
+                    Generate My Website Design
+                    <span>🚀</span>
+                  </div>
+                )}
+              </Button>
+            </div>
+          </div>
 
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Brand Colors & Style</label>
-                          <Input
-                            value={formData.preferredColors}
-                            onChange={(e) => handleInputChange("preferredColors", e.target.value)}
-                            placeholder="e.g., Modern blue and white, Warm earth tones, Minimalist black and gold"
-                            className="bg-white dark:bg-slate-900"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Desired Features</label>
-                          <Textarea
-                            value={formData.features}
-                            onChange={(e) => handleInputChange("features", e.target.value)}
-                            placeholder="Contact forms, online booking, payment processing, user accounts, live chat, blog, etc."
-                            rows={3}
-                            className="bg-white dark:bg-slate-900"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-4">
-                      <Button
-                        onClick={generateMockup}
-                        disabled={loading}
-                        className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 py-3 text-lg"
-                      >
-                        {loading ? (
-                          <>
-                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                            AI is Creating...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="w-5 h-5 mr-2" />
-                            Generate AI Mockup
-                          </>
-                        )}
-                      </Button>
-                      <Button variant="outline" onClick={resetGenerator} className="px-6">
-                        Reset
-                      </Button>
+          {/* Results */}
+          <div className="space-y-8">
+            {!mockup && !isGenerating && (
+              <div className="bg-white/40 backdrop-blur-xl rounded-3xl p-12 shadow-xl border border-white/20 text-center">
+                <div className="w-24 h-24 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Eye className="w-12 h-12 text-purple-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">Your Preview Will Appear Here</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Fill out the form and click "Generate My Website Design" to see your custom AI-generated mockup preview.
+                </p>
+              </div>
+            )}
+            
+            {mockup && (
+              <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500">
+                <div className="mb-8">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-2xl font-semibold">
+                      Website Preview - {mockup.companyInfo.name}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">
+                        {mockup.template?.name || 'Professional'} Template
+                      </Badge>
                     </div>
                   </div>
 
-                  {/* Preview Section */}
-                  <div className="space-y-6">
-                    {mockupData ? (
-                      <div className="space-y-6">
-                        <Tabs defaultValue="mockup" className="w-full">
-                          <TabsList className="grid w-full grid-cols-3">
-                            <TabsTrigger value="mockup">Mockup</TabsTrigger>
-                            <TabsTrigger value="design">Design</TabsTrigger>
-                            <TabsTrigger value="features">Features</TabsTrigger>
-                          </TabsList>
-
-                          <TabsContent value="mockup" className="space-y-4">
-                            <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6">
-                              <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-xl font-semibold flex items-center">
-                                  <Eye className="w-5 h-5 mr-2" />
-                                  Professional Website Preview
-                                </h3>
-                                <div className="flex space-x-2">
-                                  <Button variant="outline" size="sm">Desktop</Button>
-                                  <Button variant="outline" size="sm">Mobile</Button>
-                                </div>
-                              </div>
-
-                              {/* Realistic Website Mockup */}
-                              <div className="bg-white rounded-xl shadow-2xl overflow-hidden border-8 border-gray-300" style={{
-                                maxWidth: '1200px',
-                                margin: '0 auto',
-                                transform: 'scale(0.8)',
-                                transformOrigin: 'top center'
-                              }}>
-                                
-                                {/* Browser Chrome */}
-                                <div className="bg-gray-200 px-4 py-3 flex items-center space-x-2 border-b">
-                                  <div className="flex space-x-2">
-                                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                                  </div>
-                                  <div className="flex-1 bg-white rounded px-3 py-1 text-sm text-gray-600 ml-4">
-                                    {mockupData.companyInfo?.name.toLowerCase().replace(/\s+/g, '')}.com
-                                  </div>
-                                </div>
-
-                                {/* Website Content */}
-                                <div className="bg-white">
-                                  
-                                  {/* Header/Navigation */}
-                                  <header 
-                                    className="px-8 py-4 shadow-sm border-b"
-                                    style={{
-                                      backgroundColor: mockupData.designSystem?.colorPalette?.background || '#ffffff',
-                                      borderBottomColor: mockupData.designSystem?.colorPalette?.neutral || '#e5e5e5'
-                                    }}
-                                  >
-                                    <div className="flex items-center justify-between max-w-7xl mx-auto">
-                                      <div 
-                                        className="text-2xl font-bold"
-                                        style={{
-                                          color: mockupData.designSystem?.colorPalette?.primary || '#1f2937',
-                                          fontFamily: mockupData.designSystem?.typography?.headings || 'Inter'
-                                        }}
-                                      >
-                                        {mockupData.header?.logo || mockupData.companyInfo?.name}
-                                      </div>
-                                      <nav className="hidden md:flex space-x-8">
-                                        {mockupData.header?.navigation?.map((item: string, index: number) => (
-                                          <a 
-                                            key={index} 
-                                            className="font-medium hover:opacity-75 transition-opacity"
-                                            style={{
-                                              color: mockupData.designSystem?.colorPalette?.text || '#374151',
-                                              fontFamily: mockupData.designSystem?.typography?.body || 'Open Sans'
-                                            }}
-                                          >
-                                            {item}
-                                          </a>
+                  {/* Viewport Controls */}
+                  <div className="mb-4">
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {Object.entries(viewportSizes).map(([size, config]) => (
+                        <Button
+                          key={size}
+                          variant={currentViewport === size ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentViewport(size as ViewportSize)}
+                          className="flex items-center gap-2"
+                        >
+                          {config.icon}
+                          {config.name}
+                        </Button>
                                         ))}
-                                      </nav>
+                                      </div>
+                    <p className="text-sm text-gray-600">
+                      {viewportSizes[currentViewport].description}
+                    </p>
                                     </div>
-                                  </header>
 
-                                  {/* Hero Section */}
-                                  <section 
-                                    className="py-20 px-8"
-                                    style={{
-                                      background: `linear-gradient(135deg, ${mockupData.designSystem?.colorPalette?.primary || '#3b82f6'}, ${mockupData.designSystem?.colorPalette?.secondary || '#1e40af'})`,
-                                      color: '#ffffff'
-                                    }}
-                                  >
-                                    <div className="max-w-7xl mx-auto text-center">
-                                      <h1 
-                                        className="text-5xl font-bold mb-6 leading-tight"
-                                        style={{
-                                          fontFamily: mockupData.designSystem?.typography?.headings || 'Inter',
-                                          fontSize: mockupData.designSystem?.typography?.sizes?.h1 || '3.5rem'
-                                        }}
-                                      >
-                                        {mockupData.hero?.title || `Welcome to ${mockupData.companyInfo?.name}`}
-                                      </h1>
-                                      <p 
-                                        className="text-xl mb-8 opacity-90 max-w-3xl mx-auto"
-                                        style={{
-                                          fontFamily: mockupData.designSystem?.typography?.body || 'Open Sans'
-                                        }}
-                                      >
-                                        {mockupData.hero?.subtitle || mockupData.companyInfo?.tagline}
-                                      </p>
-                                      <div className="flex justify-center space-x-4">
-                                        <button 
-                                          className="px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-                                          style={{
-                                            backgroundColor: mockupData.designSystem?.colorPalette?.accent || '#f59e0b',
-                                            color: '#ffffff'
-                                          }}
-                                        >
-                                          {mockupData.hero?.cta || 'Get Started'}
-                                        </button>
-                                        {mockupData.hero?.secondaryCta && (
-                                          <button className="px-8 py-4 border-2 border-white rounded-lg font-semibold text-lg hover:bg-white hover:text-gray-900 transition-all duration-300">
-                                            {mockupData.hero.secondaryCta}
-                                          </button>
-                                        )}
+                  {/* Mockup Container */}
+                  <div className="relative bg-gray-100 p-4 rounded-lg overflow-auto" style={{ minHeight: '500px' }}>
+                    <div className="flex justify-center">
+                      <MockupRenderer 
+                        mockup={mockup} 
+                        viewportSize={currentViewport}
+                      />
                                       </div>
                                     </div>
-                                  </section>
 
-                                  {/* About Section */}
-                                  {mockupData.sections?.find((s: any) => s.name.includes('About')) && (
-                                    <section 
-                                      className="py-16 px-8"
-                                      style={{
-                                        backgroundColor: mockupData.designSystem?.colorPalette?.background || '#f9fafb'
-                                      }}
-                                    >
-                                      <div className="max-w-7xl mx-auto">
-                                        <div className="grid md:grid-cols-2 gap-12 items-center">
-                                          <div>
-                                            <h2 
-                                              className="text-3xl font-bold mb-6"
-                                              style={{
-                                                color: mockupData.designSystem?.colorPalette?.primary || '#1f2937',
-                                                fontFamily: mockupData.designSystem?.typography?.headings || 'Inter'
-                                              }}
-                                            >
-                                              {mockupData.sections.find((s: any) => s.name.includes('About'))?.title}
-                                            </h2>
-                                            <p 
-                                              className="text-lg mb-6 leading-relaxed"
-                                              style={{
-                                                color: mockupData.designSystem?.colorPalette?.text || '#374151',
-                                                fontFamily: mockupData.designSystem?.typography?.body || 'Open Sans'
-                                              }}
-                                            >
-                                              {mockupData.sections.find((s: any) => s.name.includes('About'))?.content}
-                                            </p>
-                                            <div className="grid grid-cols-1 gap-4">
-                                              {mockupData.sections.find((s: any) => s.name.includes('About'))?.highlights?.map((highlight: string, index: number) => (
-                                                <div key={index} className="flex items-center">
-                                                  <div 
-                                                    className="w-2 h-2 rounded-full mr-3"
-                                                    style={{
-                                                      backgroundColor: mockupData.designSystem?.colorPalette?.accent || '#f59e0b'
-                                                    }}
-                                                  ></div>
-                                                  <span style={{
-                                                    color: mockupData.designSystem?.colorPalette?.text || '#374151'
-                                                  }}>{highlight}</span>
-                                                </div>
-                                              ))}
-                                            </div>
-                                          </div>
-                                          <div 
-                                            className="h-80 rounded-xl flex items-center justify-center"
-                                            style={{
-                                              backgroundColor: mockupData.designSystem?.colorPalette?.neutral || '#e5e7eb'
-                                            }}
-                                          >
-                                            <div className="text-center">
-                                              <div className="w-16 h-16 bg-gray-400 rounded-full mx-auto mb-4"></div>
-                                              <p className="text-sm text-gray-600">
-                                                {mockupData.sections.find((s: any) => s.name.includes('About'))?.visual || 'Professional imagery'}
-                                              </p>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </section>
-                                  )}
-
-                                  {/* Services Section */}
-                                  {mockupData.sections?.find((s: any) => s.name.includes('Services')) && (
-                                    <section className="py-16 px-8">
-                                      <div className="max-w-7xl mx-auto">
-                                        <div className="text-center mb-12">
-                                          <h2 
-                                            className="text-4xl font-bold mb-4"
-                                            style={{
-                                              color: mockupData.designSystem?.colorPalette?.primary || '#1f2937',
-                                              fontFamily: mockupData.designSystem?.typography?.headings || 'Inter'
-                                            }}
-                                          >
-                                            {mockupData.sections.find((s: any) => s.name.includes('Services'))?.title}
-                                          </h2>
-                                          <p 
-                                            className="text-lg max-w-3xl mx-auto"
-                                            style={{
-                                              color: mockupData.designSystem?.colorPalette?.text || '#374151',
-                                              fontFamily: mockupData.designSystem?.typography?.body || 'Open Sans'
-                                            }}
-                                          >
-                                            {mockupData.sections.find((s: any) => s.name.includes('Services'))?.content}
-                                          </p>
-                                        </div>
-                                        
-                                        <div className="grid md:grid-cols-3 gap-8">
-                                          {mockupData.sections.find((s: any) => s.name.includes('Services'))?.services?.map((service: any, index: number) => (
-                                            <div 
-                                              key={index}
-                                              className="p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
-                                              style={{
-                                                backgroundColor: '#ffffff',
-                                                border: `1px solid ${mockupData.designSystem?.colorPalette?.neutral || '#e5e7eb'}`
-                                              }}
-                                            >
-                                              <div 
-                                                className="w-12 h-12 rounded-lg mb-4 flex items-center justify-center"
-                                                style={{
-                                                  backgroundColor: mockupData.designSystem?.colorPalette?.primary || '#3b82f6'
-                                                }}
-                                              >
-                                                <div className="w-6 h-6 bg-white rounded"></div>
-                                              </div>
-                                              <h3 
-                                                className="text-xl font-semibold mb-3"
-                                                style={{
-                                                  color: mockupData.designSystem?.colorPalette?.primary || '#1f2937',
-                                                  fontFamily: mockupData.designSystem?.typography?.headings || 'Inter'
-                                                }}
-                                              >
-                                                {service.name}
-                                              </h3>
-                                              <p 
-                                                className="mb-4 leading-relaxed"
-                                                style={{
-                                                  color: mockupData.designSystem?.colorPalette?.text || '#374151'
-                                                }}
-                                              >
-                                                {service.description}
-                                              </p>
-                                              <ul className="space-y-2">
-                                                {service.features?.map((feature: string, featureIndex: number) => (
-                                                  <li key={featureIndex} className="flex items-center text-sm">
-                                                    <div 
-                                                      className="w-1.5 h-1.5 rounded-full mr-2"
-                                                      style={{
-                                                        backgroundColor: mockupData.designSystem?.colorPalette?.accent || '#f59e0b'
-                                                      }}
-                                                    ></div>
-                                                    {feature}
-                                                  </li>
-                                                ))}
-                                              </ul>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    </section>
-                                  )}
-
-                                  {/* Testimonials Section */}
-                                  {mockupData.sections?.find((s: any) => s.name.includes('Testimonials')) && (
-                                    <section 
-                                      className="py-16 px-8"
-                                      style={{
-                                        backgroundColor: mockupData.designSystem?.colorPalette?.background || '#f9fafb'
-                                      }}
-                                    >
-                                      <div className="max-w-7xl mx-auto">
-                                        <div className="text-center mb-12">
-                                          <h2 
-                                            className="text-4xl font-bold mb-4"
-                                            style={{
-                                              color: mockupData.designSystem?.colorPalette?.primary || '#1f2937',
-                                              fontFamily: mockupData.designSystem?.typography?.headings || 'Inter'
-                                            }}
-                                          >
-                                            {mockupData.sections.find((s: any) => s.name.includes('Testimonials'))?.title}
-                                          </h2>
-                                        </div>
-                                        
-                                        <div className="grid md:grid-cols-2 gap-8">
-                                          {mockupData.sections.find((s: any) => s.name.includes('Testimonials'))?.testimonials?.map((testimonial: any, index: number) => (
-                                            <div 
-                                              key={index}
-                                              className="p-6 rounded-xl shadow-lg"
-                                              style={{
-                                                backgroundColor: '#ffffff'
-                                              }}
-                                            >
-                                              <div className="flex mb-4">
-                                                {[...Array(testimonial.rating)].map((_, i) => (
-                                                  <div 
-                                                    key={i}
-                                                    className="w-5 h-5"
-                                                    style={{
-                                                      backgroundColor: mockupData.designSystem?.colorPalette?.accent || '#f59e0b'
-                                                    }}
-                                                  ></div>
-                                                ))}
-                                              </div>
-                                              <p 
-                                                className="mb-4 italic text-lg"
-                                                style={{
-                                                  color: mockupData.designSystem?.colorPalette?.text || '#374151'
-                                                }}
-                                              >
-                                                "{testimonial.quote}"
-                                              </p>
-                                              <div className="flex items-center">
-                                                <div 
-                                                  className="w-12 h-12 rounded-full mr-4"
-                                                  style={{
-                                                    backgroundColor: mockupData.designSystem?.colorPalette?.neutral || '#e5e7eb'
-                                                  }}
-                                                ></div>
-                                                <div>
-                                                  <div 
-                                                    className="font-semibold"
-                                                    style={{
-                                                      color: mockupData.designSystem?.colorPalette?.primary || '#1f2937'
-                                                    }}
-                                                  >
-                                                    {testimonial.author}
-                                                  </div>
-                                                  <div 
-                                                    className="text-sm"
-                                                    style={{
-                                                      color: mockupData.designSystem?.colorPalette?.textLight || '#6b7280'
-                                                    }}
-                                                  >
-                                                    {testimonial.position}, {testimonial.company}
-                                                  </div>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    </section>
-                                  )}
-
-                                  {/* Contact Section */}
-                                  {mockupData.sections?.find((s) => s.name.includes('Contact')) && (
-                                    <section className="py-16 px-8">
-                                      <div className="max-w-7xl mx-auto">
-                                        <div className="text-center mb-12">
-                                          <h2 
-                                            className="text-4xl font-bold mb-4"
-                                            style={{
-                                              color: mockupData.designSystem?.colorPalette?.primary || '#1f2937',
-                                              fontFamily: mockupData.designSystem?.typography?.headings || 'Inter'
-                                            }}
-                                          >
-                                            {mockupData.sections.find((s) => s.name.includes('Contact'))?.title}
-                                          </h2>
-                                          <p 
-                                            className="text-lg"
-                                            style={{
-                                              color: mockupData.designSystem?.colorPalette?.text || '#374151'
-                                            }}
-                                          >
-                                            {mockupData.sections.find((s) => s.name.includes('Contact'))?.content}
-                                          </p>
-                                        </div>
-                                        
-                                        <div className="grid md:grid-cols-2 gap-12">
-                                          <div>
-                                            <h3 
-                                              className="text-2xl font-semibold mb-6"
-                                              style={{
-                                                color: mockupData.designSystem?.colorPalette?.primary || '#1f2937'
-                                              }}
-                                            >
-                                              Contact Information
-                                            </h3>
-                                            <div className="space-y-4">
-                                              {(() => {
-                                                const contactSection = mockupData.sections.find((s) => s.name.includes('Contact'));
-                                                return contactSection?.contactInfo && (
-                                                  <>
-                                                    <div className="flex items-center">
-                                                      <div 
-                                                        className="w-5 h-5 mr-3"
-                                                        style={{
-                                                          backgroundColor: mockupData.designSystem?.colorPalette?.primary || '#3b82f6'
-                                                        }}
-                                                      ></div>
-                                                      <span>{contactSection.contactInfo.phone}</span>
-                                                    </div>
-                                                    <div className="flex items-center">
-                                                      <div 
-                                                        className="w-5 h-5 mr-3"
-                                                        style={{
-                                                          backgroundColor: mockupData.designSystem?.colorPalette?.primary || '#3b82f6'
-                                                        }}
-                                                      ></div>
-                                                      <span>{contactSection.contactInfo.email}</span>
-                                                    </div>
-                                                    <div className="flex items-center">
-                                                      <div 
-                                                        className="w-5 h-5 mr-3"
-                                                        style={{
-                                                          backgroundColor: mockupData.designSystem?.colorPalette?.primary || '#3b82f6'
-                                                        }}
-                                                      ></div>
-                                                      <span>{contactSection.contactInfo.address}</span>
-                                                    </div>
-                                                  </>
-                                                );
-                                              })()}
-                                            </div>
-                                          </div>
-                                          
-                                          <div>
-                                            <h3 
-                                              className="text-2xl font-semibold mb-6"
-                                              style={{
-                                                color: mockupData.designSystem?.colorPalette?.primary || '#1f2937'
-                                              }}
-                                            >
-                                              Get In Touch
-                                            </h3>
-                                            <div className="space-y-4">
-                                              {(() => {
-                                                const contactSection = mockupData.sections.find((s) => s.name.includes('Contact'));
-                                                return contactSection?.form?.fields?.map((field: string, index: number) => (
-                                                  <div key={index}>
-                                                    <div 
-                                                      className="w-full h-12 rounded border px-3 flex items-center"
-                                                      style={{
-                                                        borderColor: mockupData.designSystem?.colorPalette?.neutral || '#e5e7eb',
-                                                        backgroundColor: '#ffffff'
-                                                      }}
-                                                    >
-                                                      <span className="text-gray-400">{field}</span>
-                                                    </div>
-                                                  </div>
-                                                ));
-                                              })()}
-                                              <button 
-                                                className="w-full py-3 rounded font-semibold"
-                                                style={{
-                                                  backgroundColor: mockupData.designSystem?.colorPalette?.primary || '#3b82f6',
-                                                  color: '#ffffff'
-                                                }}
-                                              >
-                                                {(() => {
-                                                  const contactSection = mockupData.sections.find((s) => s.name.includes('Contact'));
-                                                  return contactSection?.form?.submitText || 'Send Message';
-                                                })()}
-                                              </button>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </section>
-                                  )}
-
-                                  {/* Footer */}
-                                  <footer 
-                                    className="py-8 px-8"
-                                    style={{
-                                      backgroundColor: mockupData.designSystem?.colorPalette?.primary || '#1f2937',
-                                      color: '#ffffff'
-                                    }}
-                                  >
-                                    <div className="max-w-7xl mx-auto text-center">
-                                      <div 
-                                        className="text-xl font-bold mb-2"
-                                        style={{
-                                          fontFamily: mockupData.designSystem?.typography?.headings || 'Inter'
-                                        }}
-                                      >
-                                        {mockupData.companyInfo?.name}
-                                      </div>
-                                      <p className="text-sm opacity-75">
-                                        © 2024 {mockupData.companyInfo?.name}. All rights reserved.
-                                      </p>
-                                    </div>
-                                  </footer>
-
-                                </div>
-                              </div>
+                  {/* Full Screen Button */}
+                  <div className="mt-4 text-center">
+                    <Button
+                      onClick={() => setShowFullScreen(true)}
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      <Maximize className="w-4 h-4" />
+                      View Full Screen
+                    </Button>
                             </div>
-                          </TabsContent>
 
-                          <TabsContent value="design" className="space-y-4">
-                            <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6">
-                              <h3 className="text-xl font-semibold mb-4 flex items-center">
-                                <Palette className="w-5 h-5 mr-2" />
-                                Professional Design System
-                              </h3>
+                  {/* Tabs for additional information */}
+                  <Tabs defaultValue="design" className="mt-6">
+                    <TabsList className="grid w-full grid-cols-3">
+                      <TabsTrigger value="design" className="flex items-center gap-2">
+                        <Palette className="w-4 h-4" />
+                                Design System
+                      </TabsTrigger>
+                      <TabsTrigger value="features" className="flex items-center gap-2">
+                        <Code className="w-4 h-4" />
+                        Features
+                      </TabsTrigger>
+                      <TabsTrigger value="content" className="flex items-center gap-2">
+                        <Eye className="w-4 h-4" />
+                        Content Strategy
+                      </TabsTrigger>
+                    </TabsList>
 
-                              {mockupData.designSystem && (
-                                <div className="space-y-6">
-                                  {/* Company Information */}
-                                  {mockupData.companyInfo && (
-                                    <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm">
-                                      <h4 className="font-semibold mb-4 text-lg">Brand Identity</h4>
-                                      <div className="grid md:grid-cols-2 gap-6">
-                                        <div>
-                                          <div className="mb-3">
-                                            <strong>Company:</strong> {mockupData.companyInfo.name}
-                                          </div>
-                                          <div className="mb-3">
-                                            <strong>Tagline:</strong> {mockupData.companyInfo.tagline}
-                                          </div>
-                                          <div className="mb-3">
-                                            <strong>Industry Focus:</strong> {formData.industry}
-                                          </div>
-                                        </div>
-                                        <div>
-                                          <div className="mb-3">
-                                            <strong>Mission:</strong> {mockupData.companyInfo.mission}
-                                          </div>
-                                          <div className="mb-3">
-                                            <strong>Target Audience:</strong> {formData.targetAudience || 'General public'}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {/* Color Palette */}
-                                  <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm">
-                                    <h4 className="font-semibold mb-4 text-lg">Color Palette</h4>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                      {Object.entries(mockupData.designSystem.colorPalette || {}).map(([name, color]: [string, any]) => (
-                                        <div key={name} className="text-center">
-                                          <div
-                                            className="w-full h-20 rounded-lg border-2 border-white shadow-md mb-2"
+                    <TabsContent value="design" className="mt-4">
+                                <div className="space-y-4">
+                                  <div>
+                          <h4 className="font-semibold mb-2">Color Palette</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {Object.entries(mockup.designSystem.colorPalette).map(([name, color]) => (
+                              <div key={name} className="flex items-center gap-2">
+                                <div 
+                                  className="w-6 h-6 rounded border"
                                             style={{ backgroundColor: color }}
-                                          ></div>
-                                          <div className="text-sm font-medium capitalize">{name}</div>
-                                          <div className="text-xs text-gray-500">{color}</div>
+                                />
+                                <span className="text-sm capitalize">{name}: {color}</span>
                                         </div>
                                       ))}
                                     </div>
                                   </div>
 
-                                  {/* Typography */}
-                                  <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm">
-                                    <h4 className="font-semibold mb-4 text-lg">Typography System</h4>
-                                    <div className="space-y-4">
-                                      <div className="grid md:grid-cols-2 gap-6">
-                                        <div>
-                                          <div className="mb-2"><strong>Headings:</strong> {mockupData.designSystem.typography?.headings}</div>
-                                          <div className="mb-2"><strong>Body Text:</strong> {mockupData.designSystem.typography?.body}</div>
-                                          <div className="mb-2"><strong>Style:</strong> {mockupData.designSystem.typography?.style}</div>
-                                        </div>
-                                        {mockupData.designSystem.typography?.sizes && (
-                                          <div>
-                                            <div className="text-sm font-medium mb-2">Font Sizes:</div>
-                                            {Object.entries(mockupData.designSystem.typography.sizes).map(([size, value]: [string, any]) => (
-                                              <div key={size} className="text-sm mb-1">
-                                                <span className="font-medium">{size}:</span> {value}
-                                              </div>
-                                            ))}
-                                          </div>
-                                        )}
-                                      </div>
-                                      
-                                      {/* Typography Preview */}
-                                      <div className="border-t pt-4">
-                                        <div className="text-sm font-medium mb-3">Typography Preview:</div>
-                                        <div className="space-y-3">
-                                          <div 
-                                            className="text-3xl font-bold"
-                                            style={{
-                                              fontFamily: mockupData.designSystem.typography?.headings || 'Inter',
-                                              color: mockupData.designSystem.colorPalette?.primary || '#1f2937'
-                                            }}
-                                          >
-                                            {mockupData.companyInfo?.name} - Main Heading
-                                          </div>
-                                          <div 
-                                            className="text-xl font-semibold"
-                                            style={{
-                                              fontFamily: mockupData.designSystem.typography?.headings || 'Inter',
-                                              color: mockupData.designSystem.colorPalette?.primary || '#1f2937'
-                                            }}
-                                          >
-                                            Secondary Heading Style
-                                          </div>
-                                          <div 
-                                            className="text-base"
-                                            style={{
-                                              fontFamily: mockupData.designSystem.typography?.body || 'Open Sans',
-                                              color: mockupData.designSystem.colorPalette?.text || '#374151'
-                                            }}
-                                          >
-                                            This is how body text will appear throughout the website. It's readable, professional, and matches the overall design aesthetic.
-                                          </div>
-                                        </div>
-                                      </div>
+                                  <div>
+                          <h4 className="font-semibold mb-2">Typography</h4>
+                          <div className="space-y-1">
+                            <p className="text-sm">Headings: {mockup.designSystem.typography.headings}</p>
+                            <p className="text-sm">Body: {mockup.designSystem.typography.body}</p>
                                     </div>
                                   </div>
 
-                                  {/* Layout & Visual Style */}
-                                  <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm">
-                                    <h4 className="font-semibold mb-4 text-lg">Layout & Visual Design</h4>
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                      <div>
-                                        <div className="mb-3"><strong>Layout Style:</strong> {mockupData.designSystem.layoutStyle}</div>
-                                        <div className="mb-3"><strong>Visual Approach:</strong> {mockupData.designSystem.visualStyle}</div>
-                                        {mockupData.designSystem.borderRadius && (
-                                          <div className="mb-3"><strong>Border Radius:</strong> {mockupData.designSystem.borderRadius}</div>
-                                        )}
-                                      </div>
-                                      <div>
-                                        {mockupData.designSystem.spacing && (
-                                          <div>
-                                            <div className="text-sm font-medium mb-2">Spacing System:</div>
-                                            {Object.entries(mockupData.designSystem.spacing).map(([type, value]: [string, any]) => (
-                                              <div key={type} className="text-sm mb-1">
-                                                <span className="font-medium capitalize">{type.replace(/([A-Z])/g, ' $1')}:</span> {value}
-                                              </div>
-                                            ))}
-                                          </div>
-                                        )}
-                                      </div>
+                                  <div>
+                          <h4 className="font-semibold mb-2">Template Information</h4>
+                          <div className="bg-gray-50 p-3 rounded">
+                            <p className="text-sm"><strong>Template:</strong> {mockup.template?.name}</p>
+                            <p className="text-sm"><strong>Type:</strong> {mockup.template?.layout?.type}</p>
+                            <p className="text-sm"><strong>Description:</strong> {mockup.template?.description}</p>
                                     </div>
                                   </div>
-
-                                  {/* Responsive Design */}
-                                  {mockupData.responsiveDesign && (
-                                    <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm">
-                                      <h4 className="font-semibold mb-4 text-lg">Responsive Design Strategy</h4>
-                                      <div className="grid md:grid-cols-3 gap-6">
-                                        {Object.entries(mockupData.responsiveDesign).map(([device, specs]: [string, any]) => (
-                                          <div key={device}>
-                                            <div className="font-medium mb-2 capitalize">{device}</div>
-                                            {Object.entries(specs).map(([aspect, description]: [string, any]) => (
-                                              <div key={aspect} className="text-sm mb-1">
-                                                <span className="font-medium">{aspect.replace(/([A-Z])/g, ' $1')}:</span> {description}
-                                              </div>
-                                            ))}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
                             </div>
                           </TabsContent>
 
-                          <TabsContent value="features" className="space-y-4">
-                            <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6">
-                              <h3 className="text-xl font-semibold mb-4 flex items-center">
-                                <Code className="w-5 h-5 mr-2" />
-                                Features & Technical Specifications
-                              </h3>
-
-                              <div className="space-y-6">
-                                {/* Core Features */}
-                                <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm">
-                                  <h4 className="font-semibold mb-4 text-lg flex items-center">
-                                    <Zap className="w-4 h-4 mr-2" />
-                                    Core Website Features
-                                  </h4>
-                                  <div className="grid md:grid-cols-2 gap-3">
-                                    {mockupData.features?.map((feature: string, index: number) => (
-                                      <div key={index} className="flex items-center">
-                                        <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                    <TabsContent value="features" className="mt-4">
+                              <div className="space-y-4">
+                                <div>
+                          <h4 className="font-semibold mb-2">Included Features</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {mockup.features.map((feature, index) => (
+                              <div key={index} className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full" />
                                         <span className="text-sm">{feature}</span>
                                       </div>
                                     ))}
                                   </div>
                                 </div>
 
-                                {/* Technical Recommendations */}
-                                {mockupData.technicalRecommendations && (
-                                  <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm">
-                                    <h4 className="font-semibold mb-4 text-lg flex items-center">
-                                      <Code className="w-4 h-4 mr-2" />
-                                      Technical Implementation
-                                    </h4>
-                                    <div className="space-y-3">
-                                      {mockupData.technicalRecommendations.map((rec: string, index: number) => (
-                                        <div key={index} className="flex items-start">
-                                          <div className="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2"></div>
-                                          <span className="text-sm">{rec}</span>
-                                        </div>
+                                  <div>
+                          <h4 className="font-semibold mb-2">Technical Recommendations</h4>
+                          <div className="space-y-1">
+                            {mockup.technicalRecommendations.map((rec, index) => (
+                              <p key={index} className="text-sm text-gray-600">• {rec}</p>
                                       ))}
                                     </div>
                                   </div>
-                                )}
+                      </div>
+                    </TabsContent>
 
-                                {/* Content Strategy */}
-                                {mockupData.contentStrategy && (
-                                  <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm">
-                                    <h4 className="font-semibold mb-4 text-lg">Content Strategy</h4>
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                      <div>
-                                        <div className="mb-3"><strong>Brand Tone:</strong> {mockupData.contentStrategy.tone}</div>
-                                        <div className="mb-3"><strong>Key Messaging:</strong> {mockupData.contentStrategy.messaging}</div>
-                                      </div>
-                                      <div>
-                                        {mockupData.contentStrategy.seoKeywords && (
-                                          <div className="mb-3">
-                                            <strong>SEO Keywords:</strong>
-                                            <div className="flex flex-wrap gap-2 mt-2">
-                                              {mockupData.contentStrategy.seoKeywords.map((keyword: string, index: number) => (
-                                                <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                                                  {keyword}
-                                                </span>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        )}
-                                        {mockupData.contentStrategy.callsToAction && (
-                                          <div>
-                                            <strong>Call-to-Actions:</strong>
-                                            <div className="flex flex-wrap gap-2 mt-2">
-                                              {mockupData.contentStrategy.callsToAction.map((cta: string, index: number) => (
-                                                <span key={index} className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
-                                                  {cta}
-                                                </span>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
+                    <TabsContent value="content" className="mt-4">
+                      <div className="space-y-4">
+                                  <div>
+                          <h4 className="font-semibold mb-2">Content Strategy</h4>
+                                    <div className="space-y-2">
+                            <p className="text-sm"><strong>Tone:</strong> {mockup.contentStrategy.tone}</p>
+                            <p className="text-sm"><strong>Messaging:</strong> {mockup.contentStrategy.messaging}</p>
+                          </div>
+                        </div>
 
-                                {/* Additional Pages */}
-                                {mockupData.additionalPages && (
-                                  <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm">
-                                    <h4 className="font-semibold mb-4 text-lg">Recommended Additional Pages</h4>
-                                    <div className="grid md:grid-cols-2 gap-4">
-                                      {mockupData.additionalPages.map((page: any, index: number) => (
-                                        <div key={index} className="border rounded-lg p-4">
-                                          <div className="font-medium mb-2">{page.name}</div>
-                                          <div className="text-sm text-gray-600 mb-2">{page.purpose}</div>
-                                          <div className="text-xs text-gray-500">{page.keyContent}</div>
+                                        <div>
+                          <h4 className="font-semibold mb-2">SEO Keywords</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {mockup.contentStrategy.seoKeywords.map((keyword, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {keyword}
+                              </Badge>
+                                            ))}
+                                          </div>
                                         </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
 
-                                {/* Website Sections Detail */}
-                                <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm">
-                                  <h4 className="font-semibold mb-4 text-lg">Page Sections Overview</h4>
-                                  <div className="space-y-4">
-                                    {mockupData.sections?.map((section: any, index: number) => (
-                                      <div key={index} className="border-l-4 border-blue-500 pl-4">
-                                        <div className="font-medium text-lg mb-1">{section.name}</div>
-                                        <div className="text-sm text-gray-600 mb-2">{section.title}</div>
-                                        <div className="text-sm text-gray-700 mb-2">{section.content?.substring(0, 150)}...</div>
-                                        <div className="text-xs text-gray-500"><strong>Layout:</strong> {section.layout}</div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
+                        <div>
+                          <h4 className="font-semibold mb-2">Call-to-Actions</h4>
+                          <div className="space-y-1">
+                            {mockup.contentStrategy.callsToAction.map((cta, index) => (
+                              <p key={index} className="text-sm">• {cta}</p>
+                            ))}
+                                    </div>
                               </div>
                             </div>
                           </TabsContent>
                         </Tabs>
+                      </div>
+                    </div>
+                  )}
 
-                        {/* Quote Section */}
-                        <div className="bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-xl p-6">
-                          <h3 className="text-xl font-semibold mb-4 flex items-center">
-                            <DollarSign className="w-5 h-5 mr-2" />
-                            Professional Quote
-                          </h3>
-
-                          {quote ? (
-                            <div className="space-y-4">
-                              <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-                                ${quote.pricing?.totalCost?.toLocaleString() || 'Contact for pricing'}
-                              </div>
-                              
-                              {quote.pricing && (
-                                <div className="space-y-2">
-                                  <div className="flex justify-between">
-                                    <span>Design Cost:</span>
-                                    <span>${quote.pricing.designCost?.toLocaleString()}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>Development Cost:</span>
-                                    <span>${quote.pricing.developmentCost?.toLocaleString()}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>Features Cost:</span>
-                                    <span>${quote.pricing.featuresCost?.toLocaleString()}</span>
-                                  </div>
-                                </div>
-                              )}
-
-                              {quote.timeline && (
-                                <div className="flex items-center space-x-2">
-                                  <Clock className="w-4 h-4" />
-                                  <span><strong>Timeline:</strong> {quote.timeline.total}</span>
-                                </div>
-                              )}
-
-                              {quote.breakdown && (
-                                <div className="space-y-2">
-                                  <h4 className="font-medium">Project Breakdown:</h4>
-                                  {quote.breakdown.map((phase: any, index: number) => (
-                                    <div key={index} className="flex justify-between text-sm">
-                                      <span>{phase.phase} ({phase.duration})</span>
-                                      <span>${phase.cost?.toLocaleString()}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-
-                              <div className="pt-4 border-t">
-                                <Button className="w-full bg-green-600 hover:bg-green-700">
-                                  <DollarSign className="w-4 h-4 mr-2" />
-                                  Get Started with This Quote
-                                </Button>
-                              </div>
+                  {quote && (
+                    <div className="bg-white/60 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500">
+                      <div className="mb-6">
+                        <h3 className="text-2xl font-semibold mb-4">Project Quote</h3>
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <h4 className="font-semibold">Project Type</h4>
+                              <p className="text-gray-600">{quote.projectType}</p>
                             </div>
-                          ) : (
-                            <Button
-                              onClick={generateQuote}
-                              disabled={quoteLoading}
-                              className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
-                            >
-                              {quoteLoading ? (
-                                <>
-                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                  AI is Calculating...
-                                </>
-                              ) : (
-                                <>
-                                  <DollarSign className="w-4 h-4 mr-2" />
-                                  Generate Professional Quote
-                                </>
-                              )}
-                            </Button>
-                          )}
+                            <div>
+                              <h4 className="font-semibold">Timeline</h4>
+                              <p className="text-gray-600">{quote.timeline}</p>
+                            </div>
+                          </div>
+
+                          <div>
+                            <h4 className="font-semibold mb-2">Included Services</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+                              {quote.included_services.map((service, index) => (
+                                <div key={index} className="flex items-center gap-2">
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                                  <span className="text-sm">{service}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="bg-blue-50 p-4 rounded-lg">
+                            <h4 className="font-semibold text-xl">Total Investment</h4>
+                            <p className="text-2xl font-bold text-blue-600">{quote.total_cost}</p>
+                          </div>
                         </div>
                       </div>
-                    ) : (
-                      <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-12 text-center">
-                        <Wand2 className="w-16 h-16 mx-auto mb-4 text-slate-400" />
-                        <h3 className="text-xl font-semibold mb-2">Ready to Generate</h3>
-                        <p className="text-slate-600 dark:text-slate-400">
-                          Fill in your company details and click "Generate AI Mockup" to see your professional website design powered by Google Gemini 2.0
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </motion.div>
-
-        {/* Features Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-8"
-        >
-          <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-lg">
-            <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Google Gemini 2.0 Powered</h3>
-              <p className="text-slate-600 dark:text-slate-400">
-                Cutting-edge AI analyzes your business and creates sophisticated, industry-specific website mockups with professional design systems
-              </p>
-            </CardContent>
-          </Card>
 
-          <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-lg">
-            <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Eye className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Advanced Visual Preview</h3>
-              <p className="text-slate-600 dark:text-slate-400">
-                See detailed mockups with custom color palettes, typography, layout concepts, and comprehensive design systems tailored to your brand
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-lg">
-            <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <DollarSign className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Intelligent Pricing</h3>
-              <p className="text-slate-600 dark:text-slate-400">
-                Get accurate, detailed development quotes with project breakdowns, timelines, and professional recommendations based on current market rates
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
+        {/* Full Screen Modal */}
+        {mockup && (
+          <FullScreenMockup
+            mockup={mockup}
+            isOpen={showFullScreen}
+            onClose={() => setShowFullScreen(false)}
+          />
+        )}
       </div>
     </section>
-  )
-}
+  );
+};
+
+export { PortfolioSection };

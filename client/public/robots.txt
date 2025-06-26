@@ -1,0 +1,36 @@
+User-agent: *
+Allow: /
+
+# Block access to admin and private areas
+Disallow: /admin/
+Disallow: /private/
+Disallow: /.env
+Disallow: /api/
+Disallow: /logs/
+
+# Allow crawling of assets
+Allow: /assets/
+Allow: /images/
+Allow: /css/
+Allow: /js/
+
+# Sitemap location
+Sitemap: https://webnaster.com/sitemap.xml
+
+# Crawl delay (optional - can help with server load)
+Crawl-delay: 1
+
+# Specific directives for major search engines
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: / 

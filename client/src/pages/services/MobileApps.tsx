@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { SEO } from "@/components/SEO"
 import { useNavigate } from "react-router-dom"
+import { pagesSEO, generateServiceSchema } from "@/data/seoData"
 
 const features = [
   {
@@ -113,55 +114,48 @@ export function MobileApps() {
     window.scrollTo(0, 0)
   }, [])
 
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    "name": "Mobile App Development Services",
-    "description": "Professional mobile app development for iOS and Android platforms. Native and cross-platform solutions with modern UI/UX design.",
-    "provider": {
-      "@type": "Organization",
-      "name": "WebNaster.com",
-      "url": "https://webnaster.com"
-    },
-    "serviceType": "Mobile Application Development",
-    "areaServed": "Minneapolis-St. Paul Metro Area",
-    "hasOfferCatalog": {
-      "@type": "OfferCatalog",
-      "name": "Mobile App Development Services",
-      "itemListElement": [
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "iOS App Development"
-          }
-        },
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Android App Development"
-          }
-        },
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Cross-Platform App Development"
-          }
+  const breadcrumbs = [
+    { name: "Home", url: "/" },
+    { name: "Services", url: "/services" },
+    { name: "Mobile Apps", url: "/services/mobile-apps" }
+  ]
+
+  const serviceSchema = generateServiceSchema({
+    name: "Mobile App Development",
+    description: "Professional iOS and Android mobile app development services using native and cross-platform technologies."
+  })
+
+  const mobileAppsSchema = [
+    serviceSchema,
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": pagesSEO.mobileApps.title,
+      "description": pagesSEO.mobileApps.description,
+      "url": "https://webnaster.com/services/mobile-apps",
+      "mainEntity": {
+        "@type": "Service",
+        "name": "Mobile App Development Services",
+        "description": "Native and cross-platform mobile app development for iOS and Android that engages users and drives business growth.",
+        "serviceType": "Mobile Development",
+        "provider": {
+          "@type": "Organization",
+          "name": "WebNaster.com"
         }
-      ]
+      }
     }
-  }
+  ]
 
   return (
     <>
       <SEO
-        title="Mobile App Development - iOS & Android Apps"
-        description="Professional mobile app development services in Minneapolis. We create native iOS and Android apps, cross-platform solutions with React Native and Flutter. Get your app built by experts."
-        keywords="mobile app development Minneapolis, iOS app development, Android app development, React Native, Flutter, cross-platform apps, mobile UI/UX design"
+        title={pagesSEO.mobileApps.title}
+        description={pagesSEO.mobileApps.description}
+        keywords={pagesSEO.mobileApps.keywords}
         canonicalUrl="/services/mobile-apps"
-        structuredData={structuredData}
+        ogType={pagesSEO.mobileApps.ogType}
+        structuredData={mobileAppsSchema}
+        breadcrumbs={breadcrumbs}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">

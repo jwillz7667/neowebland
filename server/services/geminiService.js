@@ -1,4 +1,5 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const WebsiteTemplates = require('./websiteTemplates');
 
 class GeminiService {
   constructor() {
@@ -12,102 +13,128 @@ class GeminiService {
 
   async generateWebsiteMockup(companyData) {
     try {
-      console.log('Generating website mockup with Gemini AI for:', companyData.companyName);
+      console.log('Generating website mockup with professional templates for:', companyData.companyName);
+
+      // Get the appropriate template based on industry
+      const template = WebsiteTemplates.getTemplateByIndustry(companyData.industry, companyData.websiteType);
+      
+      console.log('Selected template:', template.templateId, '-', template.name);
 
       const prompt = `
-You are an expert web designer, UX/UI specialist, and copywriter. Generate a comprehensive, professional website mockup with SPECIFIC, REALISTIC content for the following company:
+You are an expert web designer and copywriter. You have been provided with a professional website template for ${template.name}. Your task is to customize this template with SPECIFIC, REALISTIC content for the following company:
 
-Company Name: ${companyData.companyName}
-Industry: ${companyData.industry}
-Description: ${companyData.description}
-Target Audience: ${companyData.targetAudience || 'General public'}
-Preferred Colors: ${companyData.preferredColors || 'Modern and professional'}
-Website Type: ${companyData.websiteType || 'Business website'}
-Desired Features: ${companyData.features || 'Standard business features'}
+COMPANY INFORMATION:
+- Company Name: ${companyData.companyName}
+- Industry: ${companyData.industry}
+- Description: ${companyData.description}
+- Target Audience: ${companyData.targetAudience || 'General public'}
+- Preferred Colors: ${companyData.preferredColors || 'Use template defaults'}
+- Website Type: ${companyData.websiteType || 'Business website'}
+- Desired Features: ${companyData.features || 'Standard business features'}
 
-IMPORTANT: Generate ACTUAL, REALISTIC content - not placeholders. Use the specific company name throughout all content.
+SELECTED TEMPLATE: ${template.name}
+Template Description: ${template.description}
+Template Type: ${template.templateId}
 
-Generate a detailed mockup response in the following JSON format:
+CUSTOMIZATION INSTRUCTIONS:
+1. Use the template's structure and design system as the foundation
+2. Generate REALISTIC, industry-specific content for ${companyData.companyName}
+3. Customize colors if user provided preferences, otherwise use template colors
+4. Create specific services/products relevant to ${companyData.industry}
+5. Generate authentic testimonials and contact information
+6. Ensure all content is professional and conversion-focused
+
+BASE TEMPLATE STRUCTURE:
+${JSON.stringify(template, null, 2)}
+
+Generate a customized mockup response that enhances this template with specific content in the following JSON format:
 {
+  "templateUsed": "${template.templateId}",
   "companyInfo": {
     "name": "${companyData.companyName}",
     "tagline": "Compelling, industry-specific tagline for ${companyData.companyName}",
     "description": "Professional company description (2-3 sentences)",
-    "mission": "Company mission statement",
+    "mission": "Company mission statement that aligns with ${companyData.industry}",
     "founded": "Realistic founding year",
-    "location": "Realistic business location"
+    "location": "Realistic business location based on ${companyData.industry}",
+    "phone": "Professional phone number format",
+    "email": "professional@${companyData.companyName.toLowerCase().replace(/\\s+/g, '')}.com",
+    "address": "Realistic business address"
   },
   "header": {
     "logo": "${companyData.companyName}",
-    "logoStyle": "Detailed logo design concept and styling",
+    "logoStyle": "Professional logo concept based on ${template.name} template style",
     "navigation": ["Home", "About", "Services", "Portfolio", "Contact"],
-    "style": "Modern, clean navigation with hover effects",
-    "layout": "Horizontal navigation bar with company logo on left"
+    "style": "${template.layout.headerStyle}",
+    "layout": "Based on ${template.name} template header design"
   },
   "hero": {
     "title": "Powerful, specific headline for ${companyData.companyName} (use actual company name)",
-    "subtitle": "Engaging 1-2 sentence subtitle that speaks to their specific industry and value proposition",
-    "cta": "Action-oriented button text",
-    "secondaryCta": "Secondary action text",
-    "backgroundConcept": "Specific background design concept",
-    "layout": "Hero section layout with call-to-action positioning",
-    "heroImage": "Detailed description of hero image/graphics for this specific industry"
+    "subtitle": "Engaging 1-2 sentence subtitle specific to ${companyData.industry}",
+    "cta": "Action-oriented button text for ${companyData.industry}",
+    "secondaryCta": "Secondary action text (if applicable)",
+    "backgroundConcept": "Hero background concept matching ${template.name} style",
+    "layout": "${template.layout.heroStyle}",
+    "heroImage": "Detailed description of hero image/graphics for ${companyData.industry}"
   },
   "sections": [
     {
       "name": "About ${companyData.companyName}",
       "title": "Industry-specific section title",
-      "content": "2-3 paragraphs of realistic content about ${companyData.companyName}, their expertise, and why clients should choose them",
-      "highlights": ["Key point 1", "Key point 2", "Key point 3"],
-      "layout": "Two-column layout with text and image",
-      "visual": "Specific visual/image description for this section"
+      "content": "2-3 paragraphs of realistic content about ${companyData.companyName}, their expertise in ${companyData.industry}, and why clients should choose them",
+      "highlights": ["Key benefit 1 for ${companyData.industry}", "Key benefit 2", "Key benefit 3"],
+      "layout": "Based on template about section design",
+      "visual": "Specific visual/image description for ${companyData.industry}"
     },
     {
       "name": "Our Services",
       "title": "Services We Provide",
-      "content": "Overview paragraph about ${companyData.companyName}'s service offerings",
+      "content": "Overview paragraph about ${companyData.companyName}'s ${companyData.industry} services",
       "services": [
         {
-          "name": "Service 1 name (industry-specific)",
-          "description": "Detailed service description",
-          "features": ["Feature 1", "Feature 2", "Feature 3"]
+          "name": "Primary service for ${companyData.industry}",
+          "description": "Detailed service description relevant to ${companyData.industry}",
+          "features": ["Service feature 1", "Service feature 2", "Service feature 3"],
+          "icon": "Relevant icon description"
         },
         {
-          "name": "Service 2 name (industry-specific)", 
+          "name": "Secondary service for ${companyData.industry}",
           "description": "Detailed service description",
-          "features": ["Feature 1", "Feature 2", "Feature 3"]
+          "features": ["Service feature 1", "Service feature 2", "Service feature 3"],
+          "icon": "Relevant icon description"
         },
         {
-          "name": "Service 3 name (industry-specific)",
-          "description": "Detailed service description", 
-          "features": ["Feature 1", "Feature 2", "Feature 3"]
+          "name": "Additional service for ${companyData.industry}",
+          "description": "Detailed service description",
+          "features": ["Service feature 1", "Service feature 2", "Service feature 3"],
+          "icon": "Relevant icon description"
         }
       ],
-      "layout": "Three-column grid with service cards",
-      "visual": "Icons and imagery for each service"
+      "layout": "Based on template services section",
+      "visual": "Service-specific imagery for ${companyData.industry}"
     },
     {
       "name": "Why Choose ${companyData.companyName}",
       "title": "Why Choose ${companyData.companyName}",
-      "content": "Compelling paragraph about competitive advantages",
+      "content": "Compelling paragraph about competitive advantages in ${companyData.industry}",
       "benefits": [
         {
-          "title": "Benefit 1 (industry-specific)",
+          "title": "Industry-specific benefit 1",
+          "description": "Detailed benefit description for ${companyData.industry}",
+          "icon": "Relevant icon description"
+        },
+        {
+          "title": "Industry-specific benefit 2", 
           "description": "Detailed benefit description",
           "icon": "Relevant icon description"
         },
         {
-          "title": "Benefit 2 (industry-specific)",
-          "description": "Detailed benefit description", 
-          "icon": "Relevant icon description"
-        },
-        {
-          "title": "Benefit 3 (industry-specific)",
+          "title": "Industry-specific benefit 3",
           "description": "Detailed benefit description",
           "icon": "Relevant icon description"
         }
       ],
-      "layout": "Grid layout with icons and descriptions"
+      "layout": "Grid layout with icons"
     },
     {
       "name": "Client Testimonials",
@@ -115,21 +142,28 @@ Generate a detailed mockup response in the following JSON format:
       "content": "Introduction to testimonials",
       "testimonials": [
         {
-          "quote": "Realistic, specific testimonial about ${companyData.companyName}",
+          "quote": "Realistic, specific testimonial about ${companyData.companyName}'s ${companyData.industry} services",
           "author": "Realistic client name",
+          "position": "Job title relevant to ${companyData.industry}",
+          "company": "Company name that would use ${companyData.industry} services",
+          "rating": 5
+        },
+        {
+          "quote": "Another realistic testimonial highlighting specific ${companyData.industry} benefits",
+          "author": "Another client name",
           "position": "Job title",
           "company": "Company name",
           "rating": 5
         },
         {
-          "quote": "Another realistic testimonial highlighting specific benefits",
-          "author": "Another client name", 
+          "quote": "Third testimonial focusing on results from ${companyData.companyName}",
+          "author": "Third client name",
           "position": "Job title",
           "company": "Company name",
           "rating": 5
         }
       ],
-      "layout": "Testimonial cards with photos and ratings"
+      "layout": "Template testimonial layout"
     },
     {
       "name": "Contact ${companyData.companyName}",
@@ -138,110 +172,52 @@ Generate a detailed mockup response in the following JSON format:
       "contactInfo": {
         "phone": "Realistic phone number format",
         "email": "professional@${companyData.companyName.toLowerCase().replace(/\\s+/g, '')}.com",
-        "address": "Realistic business address",
-        "hours": "Business hours"
+        "address": "Realistic business address for ${companyData.industry}",
+        "hours": "Business hours appropriate for ${companyData.industry}"
       },
       "form": {
         "fields": ["Name", "Email", "Phone", "Service Interest", "Message"],
-        "submitText": "Get Free Consultation"
+        "submitText": "Contact Us Today"
       },
-      "layout": "Split layout with contact form and contact information"
+      "layout": "Template contact layout"
     }
   ],
   "designSystem": {
-    "colorPalette": {
-      "primary": "Professional hex color for ${companyData.industry}",
-      "secondary": "Complementary hex color",
-      "accent": "Accent hex color",
-      "background": "Background hex color",
-      "text": "Text hex color",
-      "textLight": "Light text hex color",
-      "success": "Success green hex",
-      "neutral": "Neutral gray hex"
-    },
-    "typography": {
-      "headings": "Professional font family (e.g., 'Poppins', 'Inter', 'Montserrat')",
-      "body": "Readable font family (e.g., 'Open Sans', 'Source Sans Pro')",
-      "headingWeights": "Font weights for headings",
-      "sizes": {
-        "h1": "3.5rem",
-        "h2": "2.5rem", 
-        "h3": "1.75rem",
-        "body": "1rem",
-        "small": "0.875rem"
-      }
-    },
-    "spacing": {
-      "sectionPadding": "5rem",
-      "elementSpacing": "2rem",
-      "cardPadding": "2rem"
-    },
-    "borderRadius": "0.5rem",
-    "shadows": "Professional shadow system",
-    "layoutStyle": "Modern, clean layout with generous whitespace",
-    "visualStyle": "Professional, conversion-focused design"
-  },
-  "responsiveDesign": {
-    "mobile": {
-      "navigation": "Hamburger menu",
-      "heroLayout": "Single column with adjusted text sizes",
-      "sectionsLayout": "Stacked sections with mobile-optimized spacing"
-    },
-    "tablet": {
-      "navigation": "Condensed horizontal navigation",
-      "heroLayout": "Adjusted hero with balanced text and visual",
-      "sectionsLayout": "Two-column where appropriate"
-    }
+    "templateId": "${template.templateId}",
+    "colorPalette": ${JSON.stringify(template.colorScheme)},
+    "typography": ${JSON.stringify(template.typography)},
+    "spacing": ${JSON.stringify(template.spacing)},
+    "layout": ${JSON.stringify(template.layout)},
+    "customizations": "List any color/style customizations based on user preferences"
   },
   "features": [
-    "Responsive mobile-first design",
-    "SEO optimization with ${companyData.companyName} branding",
+    "Responsive mobile-first design using ${template.name} template",
+    "SEO optimization for ${companyData.industry}",
     "Fast loading performance",
     "Accessibility compliance (WCAG 2.1)",
     "Contact form with validation",
     "Social media integration",
     "Google Analytics integration",
     "SSL security certificate",
-    "Industry-specific features for ${companyData.industry}"
+    "Industry-specific features for ${companyData.industry}",
+    "${template.name} template optimizations"
   ],
   "technicalRecommendations": [
-    "Modern framework (React/Next.js or similar)",
-    "Performance optimization techniques",
-    "SEO best practices implementation",
+    "Modern framework optimized for ${template.name} template",
+    "Performance optimization for ${companyData.industry} websites",
+    "SEO best practices for ${companyData.industry}",
     "Security considerations for ${companyData.industry}",
-    "Content Management System integration"
+    "Template-specific technical requirements"
   ],
   "contentStrategy": {
-    "tone": "Professional, trustworthy, and ${companyData.industry}-focused",
-    "messaging": "Key messaging strategy emphasizing ${companyData.companyName}'s unique value",
-    "seoKeywords": ["Industry-specific keyword 1", "Industry-specific keyword 2", "${companyData.companyName}", "Local + industry", "Service + location"],
-    "callsToAction": ["Primary CTA", "Secondary CTA", "Contact CTA"]
-  },
-  "additionalPages": [
-    {
-      "name": "About Us",
-      "purpose": "Detailed company story and team information",
-      "keyContent": "Company history, team bios, mission/vision"
-    },
-    {
-      "name": "Services Detail",
-      "purpose": "In-depth service descriptions",
-      "keyContent": "Service processes, pricing, case studies"
-    },
-    {
-      "name": "Portfolio/Case Studies", 
-      "purpose": "Showcase past work and results",
-      "keyContent": "Project examples, before/after, client results"
-    },
-    {
-      "name": "Blog/Resources",
-      "purpose": "Industry insights and thought leadership",
-      "keyContent": "Industry articles, tips, company news"
-    }
-  ]
+    "tone": "${template.templateId} template tone optimized for ${companyData.industry}",
+    "messaging": "Key messaging strategy for ${companyData.companyName} in ${companyData.industry}",
+    "seoKeywords": ["${companyData.industry} keyword 1", "${companyData.industry} keyword 2", "${companyData.companyName}", "local + ${companyData.industry}", "service + location"],
+    "callsToAction": ["Primary CTA for ${companyData.industry}", "Secondary CTA", "Contact CTA"]
+  }
 }
 
-Make the mockup extremely professional and industry-specific. Use realistic content that a real ${companyData.industry} business would have. Include specific details, actual service names, realistic pricing considerations, and professional copy throughout.
+IMPORTANT: Make this extremely professional and industry-specific. Use realistic content that a real ${companyData.industry} business would have. The template provides the structure and design foundation - you provide the personalized, realistic content.
 
 Respond ONLY with the JSON object, no additional text.
 `;
@@ -267,7 +243,10 @@ Respond ONLY with the JSON object, no additional text.
         throw new Error('Failed to parse AI response');
       }
 
-      console.log('Parsed mockup data:', JSON.stringify(mockupData, null, 2));
+      // Add template information to the response
+      mockupData.template = template;
+      
+      console.log('Generated mockup using template:', template.templateId);
       return mockupData;
 
     } catch (error) {

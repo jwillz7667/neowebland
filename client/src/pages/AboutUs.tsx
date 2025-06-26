@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { SEO } from "@/components/SEO"
 import { useNavigate } from "react-router-dom"
+import { pagesSEO, businessSchema } from "@/data/seoData"
 
 const values = [
   {
@@ -64,39 +65,47 @@ export function AboutUs() {
     window.scrollTo(0, 0)
   }, [])
 
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "WebNaster.com",
-    "url": "https://webnaster.com",
-    "logo": "https://webnaster.com/logo.png",
-    "description": "Premium web design and development agency specializing in modern, responsive websites and digital solutions.",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "18234 80th Pl N",
-      "addressLocality": "Maple Grove",
-      "addressRegion": "MN",
-      "postalCode": "55311",
-      "addressCountry": "US"
-    },
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "telephone": "+1-612-930-1390",
-      "contactType": "customer service"
-    },
-    "foundingDate": "2019",
-    "numberOfEmployees": "25+",
-    "areaServed": "Minneapolis-St. Paul Metro Area"
-  }
+  const breadcrumbs = [
+    { name: "Home", url: "/" },
+    { name: "About", url: "/about" }
+  ]
+
+  const aboutSchema = [
+    businessSchema,
+    {
+      "@context": "https://schema.org",
+      "@type": "AboutPage",
+      "name": pagesSEO.about.title,
+      "description": pagesSEO.about.description,
+      "url": "https://webnaster.com/about",
+      "mainEntity": {
+        "@type": "Organization",
+        "name": "WebNaster.com",
+        "description": "Award-winning web design and development agency specializing in creating exceptional digital experiences.",
+        "foundingDate": "2020",
+        "numberOfEmployees": "15-25",
+        "knowsAbout": [
+          "Web Design",
+          "Web Development",
+          "UI/UX Design",
+          "Mobile App Development",
+          "E-commerce Solutions",
+          "SEO Services"
+        ]
+      }
+    }
+  ]
 
   return (
     <>
       <SEO
-        title="About Us - Award-Winning Web Design Agency"
-        description="Learn about WebNaster.com, a premium web design and development agency in Minneapolis. Discover our story, values, and commitment to creating exceptional digital experiences."
-        keywords="about WebNaster, web design agency Minneapolis, our story, company values, award-winning design team"
+        title={pagesSEO.about.title}
+        description={pagesSEO.about.description}
+        keywords={pagesSEO.about.keywords}
         canonicalUrl="/about"
-        structuredData={structuredData}
+        ogType={pagesSEO.about.ogType}
+        structuredData={aboutSchema}
+        breadcrumbs={breadcrumbs}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">

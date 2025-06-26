@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { SEO } from "@/components/SEO"
 import { useNavigate } from "react-router-dom"
+import { pagesSEO, generateServiceSchema } from "@/data/seoData"
 
 const services = [
   {
@@ -130,32 +131,48 @@ export function UIUXDesign() {
     window.scrollTo(0, 0)
   }, [])
 
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    "name": "UI/UX Design Services",
-    "description": "Professional UI/UX design services including user experience design, user interface design, mobile-first design, and conversion optimization.",
-    "provider": {
-      "@type": "Organization",
-      "name": "WebNaster.com",
-      "url": "https://webnaster.com"
-    },
-    "serviceType": "UI/UX Design",
-    "areaServed": "Minneapolis-St. Paul Metro Area",
-    "offers": {
-      "@type": "Offer",
-      "description": "Custom UI/UX design solutions for web and mobile applications"
+  const breadcrumbs = [
+    { name: "Home", url: "/" },
+    { name: "Services", url: "/services" },
+    { name: "UI/UX Design", url: "/services/ui-ux-design" }
+  ]
+
+  const serviceSchema = generateServiceSchema({
+    name: "UI/UX Design Services",
+    description: "User-centered design services including user research, wireframing, prototyping, and interface design."
+  })
+
+  const uiuxSchema = [
+    serviceSchema,
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": pagesSEO.uiuxDesign.title,
+      "description": pagesSEO.uiuxDesign.description,
+      "url": "https://webnaster.com/services/ui-ux-design",
+      "mainEntity": {
+        "@type": "Service",
+        "name": "UI/UX Design Services",
+        "description": "Professional user interface and user experience design services that create intuitive and engaging digital experiences.",
+        "serviceType": "Design",
+        "provider": {
+          "@type": "Organization",
+          "name": "WebNaster.com"
+        }
+      }
     }
-  }
+  ]
 
   return (
     <>
       <SEO
-        title="UI/UX Design Services - User-Centered Design Solutions"
-        description="Professional UI/UX design services in Minneapolis. We create user-centered designs that improve conversions, enhance user experience, and drive business growth."
-        keywords="UI UX design Minneapolis, user experience design, user interface design, mobile app design, conversion optimization, usability testing"
+        title={pagesSEO.uiuxDesign.title}
+        description={pagesSEO.uiuxDesign.description}
+        keywords={pagesSEO.uiuxDesign.keywords}
         canonicalUrl="/services/ui-ux-design"
-        structuredData={structuredData}
+        ogType={pagesSEO.uiuxDesign.ogType}
+        structuredData={uiuxSchema}
+        breadcrumbs={breadcrumbs}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">

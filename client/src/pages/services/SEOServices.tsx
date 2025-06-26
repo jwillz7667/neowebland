@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { SEO } from "@/components/SEO"
 import { useNavigate } from "react-router-dom"
+import { pagesSEO, generateServiceSchema } from "@/data/seoData"
 
 const seoServices = [
   {
@@ -114,349 +115,234 @@ export function SEOServices() {
     window.scrollTo(0, 0)
   }, [])
 
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    "name": "SEO Services",
-    "description": "Professional SEO services to improve search engine rankings, drive organic traffic, and grow your business online.",
-    "provider": {
-      "@type": "Organization",
-      "name": "WebNaster.com",
-      "url": "https://webnaster.com"
-    },
-    "areaServed": "Minneapolis-St. Paul Metro Area",
-    "serviceType": "Search Engine Optimization",
-    "offers": {
-      "@type": "Offer",
-      "availability": "https://schema.org/InStock",
-      "priceRange": "$$"
+  const breadcrumbs = [
+    { name: "Home", url: "/" },
+    { name: "Services", url: "/services" },
+    { name: "SEO Services", url: "/services/seo" }
+  ]
+
+  const serviceSchema = generateServiceSchema({
+    name: "SEO Services",
+    description: "Comprehensive SEO and digital marketing services that increase online visibility, drive organic traffic, and boost conversions."
+  })
+
+  const seoSchema = [
+    serviceSchema,
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": pagesSEO.seoServices.title,
+      "description": pagesSEO.seoServices.description,
+      "url": "https://webnaster.com/services/seo",
+      "mainEntity": {
+        "@type": "Service",
+        "name": "SEO & Digital Marketing Services",
+        "description": "Professional SEO services that improve search rankings, increase organic traffic, and drive business growth.",
+        "serviceType": "SEO & Digital Marketing",
+        "provider": {
+          "@type": "Organization",
+          "name": "WebNaster.com"
+        }
+      }
     }
-  }
+  ]
 
   return (
     <>
       <SEO
-        title="Professional SEO Services - Boost Your Search Rankings"
-        description="Expert SEO services in Minneapolis. Increase organic traffic, improve search rankings, and grow your business with our proven SEO strategies and optimization techniques."
-        keywords="SEO services Minneapolis, search engine optimization, organic traffic, keyword research, local SEO, technical SEO audit, content optimization"
+        title={pagesSEO.seoServices.title}
+        description={pagesSEO.seoServices.description}
+        keywords={pagesSEO.seoServices.keywords}
         canonicalUrl="/services/seo"
-        structuredData={structuredData}
+        ogType={pagesSEO.seoServices.ogType}
+        structuredData={seoSchema}
+        breadcrumbs={breadcrumbs}
       />
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-green-50">
         {/* Hero Section */}
-        <section className="py-20 px-6 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-green-600/10 via-blue-600/10 to-purple-600/10" />
+        <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto text-center">
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+              SEO Services &
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-green-600"> Digital Marketing</span>
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+              Increase your online visibility and drive more qualified traffic to your website with our comprehensive SEO and digital marketing services.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button className="bg-gradient-to-r from-teal-600 to-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                Get Started
+              </button>
+              <button className="border-2 border-teal-600 text-teal-600 px-8 py-3 rounded-lg font-semibold hover:bg-teal-50 transition-colors">
+                Free SEO Audit
+              </button>
+            </div>
+          </div>
+        </section>
 
-          <div className="relative z-10 max-w-7xl mx-auto">
-            <motion.div
-              ref={ref}
-              initial={{ opacity: 0, y: 50 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8 }}
-              className="text-center mb-16"
-            >
-              <Badge variant="secondary" className="mb-4 px-4 py-2">
-                SEO Services
-              </Badge>
-              <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-                Dominate Search Results
-                <br />
-                <span className="bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Drive Organic Growth
-                </span>
-              </h1>
-              <p className="text-xl text-slate-600 dark:text-slate-400 max-w-4xl mx-auto mb-8">
-                Boost your search engine rankings, increase organic traffic, and grow your business with our
-                comprehensive SEO services. Get found by customers actively searching for your products and services.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
-                  size="lg"
-                  onClick={() => navigate('/contact')}
-                  className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white px-8 py-3"
-                >
-                  Get SEO Audit
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() => navigate('/contact')}
-                  className="px-8 py-3"
-                >
-                  View SEO Packages
-                </Button>
-              </div>
-            </motion.div>
-
-            {/* Stats */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16"
-            >
+        {/* SEO Services */}
+        <section className="py-16 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Our SEO Services</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[
-                { number: "300%", label: "Average Traffic Increase" },
-                { number: "85%", label: "First Page Rankings" },
-                { number: "150+", label: "SEO Projects Completed" },
-                { number: "6 Months", label: "Average Results Timeline" }
-              ].map((stat, index) => (
-                <Card key={stat.label} className="text-center bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-2">
-                      {stat.number}
-                    </div>
-                    <div className="text-sm text-slate-600 dark:text-slate-400">
-                      {stat.label}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Services Section */}
-        <section className="py-16 px-6">
-          <div className="max-w-7xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-900 dark:text-white">
-                Comprehensive SEO Services
-              </h2>
-              <p className="text-lg text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
-                From technical audits to content optimization, we provide end-to-end SEO solutions
-                that deliver measurable results for your business.
-              </p>
-            </motion.div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {seoServices.map((service, index) => (
-                <motion.div
-                  key={service.title}
-                  initial={{ opacity: 0, y: 50 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.8, delay: 0.6 + index * 0.1 }}
-                >
-                  <Card className="group h-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
-                    <CardHeader className="pb-4">
-                      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${service.color} p-4 mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                        <service.icon className="w-8 h-8 text-white" />
+                {
+                  title: "Technical SEO",
+                  description: "Optimize your website's technical foundation for better search engine crawling and indexing.",
+                  icon: "⚙️",
+                  features: ["Site Speed Optimization", "Mobile Optimization", "Schema Markup", "XML Sitemaps"]
+                },
+                {
+                  title: "On-Page SEO",
+                  description: "Optimize individual pages for target keywords and improve content relevance.",
+                  icon: "📄",
+                  features: ["Keyword Research", "Content Optimization", "Meta Tags", "Internal Linking"]
+                },
+                {
+                  title: "Local SEO",
+                  description: "Improve your visibility in local search results and attract nearby customers.",
+                  icon: "📍",
+                  features: ["Google My Business", "Local Citations", "Review Management", "Local Keywords"]
+                },
+                {
+                  title: "Content Marketing",
+                  description: "Create valuable, engaging content that attracts and converts your target audience.",
+                  icon: "✍️",
+                  features: ["Blog Content", "Landing Pages", "Content Strategy", "Content Optimization"]
+                },
+                {
+                  title: "Link Building",
+                  description: "Build high-quality backlinks to improve your domain authority and search rankings.",
+                  icon: "🔗",
+                  features: ["Quality Backlinks", "Guest Posting", "Resource Building", "Competitor Analysis"]
+                },
+                {
+                  title: "SEO Analytics",
+                  description: "Track performance, measure results, and continuously optimize your SEO strategy.",
+                  icon: "📊",
+                  features: ["Rank Tracking", "Traffic Analysis", "Conversion Tracking", "Reporting"]
+                }
+              ].map((service, index) => (
+                <div key={index} className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+                  <div className="text-4xl mb-4">{service.icon}</div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">{service.title}</h3>
+                  <p className="text-gray-600 mb-4">{service.description}</p>
+                  <div className="space-y-2">
+                    {service.features.map((feature, idx) => (
+                      <div key={idx} className="flex items-center text-sm text-gray-600">
+                        <span className="text-green-500 mr-2">✓</span>
+                        {feature}
                       </div>
-                      <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">
-                        {service.title}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-slate-600 dark:text-slate-400 mb-4">
-                        {service.description}
-                      </p>
-                      <ul className="space-y-2">
-                        {service.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-center text-sm text-slate-600 dark:text-slate-400">
-                            <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Process Section */}
-        <section className="py-16 px-6 bg-white/50 dark:bg-slate-800/50">
-          <div className="max-w-7xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.8 }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-900 dark:text-white">
-                Our SEO Process
-              </h2>
-              <p className="text-lg text-slate-600 dark:text-slate-400">
-                A proven methodology that delivers consistent results
-              </p>
-            </motion.div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {process.map((step, index) => (
-                <motion.div
-                  key={step.step}
-                  initial={{ opacity: 0, y: 50 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.8, delay: 1 + index * 0.1 }}
-                >
-                  <Card className="text-center bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                    <CardContent className="p-6">
-                      <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">
-                        {step.step}
-                      </div>
-                      <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">
-                        {step.title}
-                      </h3>
-                      <p className="text-slate-600 dark:text-slate-400">
-                        {step.description}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Benefits Section */}
-        <section className="py-16 px-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <motion.div
-                initial={{ opacity: 0, x: -50 }}
-                animate={isInView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.8, delay: 1.2 }}
-              >
-                <h2 className="text-3xl md:text-4xl font-bold mb-6 text-slate-900 dark:text-white">
-                  Why Choose Our SEO Services?
-                </h2>
-                <p className="text-lg text-slate-600 dark:text-slate-400 mb-8">
-                  Our data-driven approach and proven strategies help businesses achieve sustainable
-                  growth through improved search engine visibility and organic traffic.
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {benefits.map((benefit, index) => (
-                    <div key={index} className="flex items-center">
-                      <CheckCircle className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                      <span className="text-slate-700 dark:text-slate-300">{benefit}</span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                animate={isInView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.8, delay: 1.4 }}
-              >
-                <Card className="bg-gradient-to-br from-green-600 via-blue-600 to-purple-600 text-white border-0 shadow-2xl">
-                  <CardContent className="p-8">
-                    <h3 className="text-2xl font-bold mb-4">Ready to Boost Your Rankings?</h3>
-                    <p className="text-white/90 mb-6">
-                      Get a free SEO audit and discover how we can help your business
-                      dominate search results and drive more qualified traffic.
-                    </p>
-                    <Button
-                      size="lg"
-                      onClick={() => navigate('/contact')}
-                      className="bg-white text-slate-900 hover:bg-slate-100 w-full"
-                    >
-                      Get Free SEO Audit
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Testimonials Section */}
-        <section className="py-16 px-6 bg-white/50 dark:bg-slate-800/50">
+        {/* SEO Process */}
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
           <div className="max-w-7xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: 1.6 }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-900 dark:text-white">
-                Client Success Stories
-              </h2>
-              <p className="text-lg text-slate-600 dark:text-slate-400">
-                See how our SEO services have transformed businesses
-              </p>
-            </motion.div>
+            <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Our SEO Process</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[
+                {
+                  step: "01",
+                  title: "SEO Audit",
+                  description: "Comprehensive analysis of your current SEO performance and opportunities.",
+                  icon: "🔍"
+                },
+                {
+                  step: "02",
+                  title: "Strategy Development",
+                  description: "Create a customized SEO strategy based on your business goals and competition.",
+                  icon: "📋"
+                },
+                {
+                  step: "03",
+                  title: "Implementation",
+                  description: "Execute on-page and technical optimizations across your website.",
+                  icon: "🛠️"
+                },
+                {
+                  step: "04",
+                  title: "Monitor & Optimize",
+                  description: "Continuous monitoring, reporting, and optimization for better results.",
+                  icon: "📈"
+                }
+              ].map((process, index) => (
+                <div key={index} className="text-center">
+                  <div className="bg-gradient-to-r from-teal-600 to-green-600 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 text-xl font-bold">
+                    {process.step}
+                  </div>
+                  <div className="text-4xl mb-4">{process.icon}</div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">{process.title}</h3>
+                  <p className="text-gray-600">{process.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {testimonials.map((testimonial, index) => (
-                <motion.div
-                  key={testimonial.name}
-                  initial={{ opacity: 0, y: 50 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.8, delay: 1.8 + index * 0.1 }}
-                >
-                  <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                    <CardContent className="p-6">
-                      <div className="flex items-center mb-4">
-                        {[...Array(testimonial.rating)].map((_, i) => (
-                          <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                        ))}
-                      </div>
-                      <p className="text-slate-600 dark:text-slate-400 mb-4 italic">
-                        "{testimonial.text}"
-                      </p>
-                      <div>
-                        <div className="font-semibold text-slate-900 dark:text-white">
-                          {testimonial.name}
-                        </div>
-                        <div className="text-sm text-slate-500 dark:text-slate-400">
-                          {testimonial.company}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+        {/* Results & Benefits */}
+        <section className="py-16 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">What You Can Expect</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[
+                {
+                  title: "Increased Traffic",
+                  description: "More qualified visitors finding your website through search engines.",
+                  icon: "📊",
+                  metric: "150%+"
+                },
+                {
+                  title: "Higher Rankings",
+                  description: "Improved search engine rankings for your target keywords.",
+                  icon: "🏆",
+                  metric: "Top 10"
+                },
+                {
+                  title: "Better Conversions",
+                  description: "More website visitors converting into customers and leads.",
+                  icon: "💰",
+                  metric: "85%+"
+                },
+                {
+                  title: "Brand Visibility",
+                  description: "Increased online presence and brand awareness in your market.",
+                  icon: "🎯",
+                  metric: "3x More"
+                }
+              ].map((benefit, index) => (
+                <div key={index} className="bg-gradient-to-br from-teal-50 to-green-50 rounded-xl p-6 text-center">
+                  <div className="text-4xl mb-4">{benefit.icon}</div>
+                  <div className="text-2xl font-bold text-teal-600 mb-2">{benefit.metric}</div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{benefit.title}</h3>
+                  <p className="text-gray-600 text-sm">{benefit.description}</p>
+                </div>
               ))}
             </div>
           </div>
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 px-6">
+        <section className="py-16 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: 2 }}
-            >
-              <Card className="bg-gradient-to-br from-green-600 via-blue-600 to-purple-600 text-white border-0 shadow-2xl">
-                <CardContent className="p-10">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                    Start Your SEO Journey Today
-                  </h2>
-                  <p className="text-xl mb-8 text-white/90 max-w-2xl mx-auto">
-                    Don't let your competitors dominate search results. Get started with our
-                    proven SEO strategies and watch your organic traffic soar.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button
-                      size="lg"
-                      onClick={() => navigate('/contact')}
-                      className="bg-white text-slate-900 hover:bg-slate-100 px-8 py-3"
-                    >
-                      Get Free Consultation
-                    </Button>
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      onClick={() => navigate('/contact')}
-                      className="border-white text-white hover:bg-white hover:text-slate-900 px-8 py-3"
-                    >
-                      View Our Work
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Ready to Boost Your Search Rankings?</h2>
+            <p className="text-lg text-gray-600 mb-8">
+              Get a free SEO audit and discover how we can help increase your online visibility and drive more qualified traffic.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button className="bg-gradient-to-r from-teal-600 to-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                Get Free SEO Audit
+              </button>
+              <button className="border-2 border-teal-600 text-teal-600 px-8 py-3 rounded-lg font-semibold hover:bg-teal-50 transition-colors">
+                Contact Us
+              </button>
+            </div>
           </div>
         </section>
       </div>

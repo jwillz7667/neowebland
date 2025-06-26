@@ -1,0 +1,44 @@
+# Netlify redirects file for SPA routing and SEO
+
+# API proxy redirects (if you have a separate backend)
+/api/*  https://your-backend-url.herokuapp.com/api/:splat  200
+
+# Redirect common variations and old URLs
+/home /  301
+/index /  301
+/index.html /  301
+
+# Service page redirects for better SEO
+/web-development /services/web-development  301
+/webdev /services/web-development  301
+/ui-ux /services/ui-ux-design  301
+/uiux /services/ui-ux-design  301
+/mobile /services/mobile-apps  301
+/apps /services/mobile-apps  301
+/ecom /services/ecommerce  301
+/shop /services/ecommerce  301
+/seo /services/seo  301
+/optimization /services/seo  301
+
+# Contact page variations
+/get-in-touch /contact  301
+/reach-out /contact  301
+/consultation /contact  301
+
+# About page variations
+/about-us /about  301
+/story /about  301
+/company /about  301
+
+# Team page variations
+/our-team /team  301
+/meet-the-team /team  301
+/staff /team  301
+
+# Blog redirects
+/news /blog  301
+/articles /blog  301
+/insights /blog  301
+
+# Catch-all for SPA routing - must be last
+/*    /index.html   200 

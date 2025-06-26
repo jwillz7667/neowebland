@@ -10,7 +10,7 @@ const floatingElements = [
 
 export function FloatingElements() {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none -z-40">
       {floatingElements.map((element, index) => (
         <motion.div
           key={index}

@@ -10,15 +10,25 @@
     "server": "cd server && npm run dev",
     "server-install": "cd server && npm install",
     "start": "concurrently -n \"client,server\" \"npm run client\" \"npm run server\"",
-    "debug": "concurrently -n \"client,server\" \"npm run client\" \"cross-env NODE_OPTIONS=--inspect-brk=9229 npm run server\""
+    "debug": "concurrently -n \"client,server\" \"npm run client\" \"cross-env NODE_OPTIONS=--inspect-brk=9229 npm run server\"",
+    "build": "cd client && npm run build",
+    "build:netlify": "npm run client-install && cd client && npm run build",
+    "preview": "cd client && npm run preview",
+    "lint": "cd client && npm run lint",
+    "clean": "rm -rf client/dist client/node_modules server/node_modules node_modules",
+    "heroku-postbuild": "npm run build:netlify"
   },
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "WebNaster.com - Premium Web Design & Development Agency",
   "dependencies": {
     "concurrently": "^9.1.0"
   },
   "devDependencies": {
     "cross-env": "^7.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   }
 }

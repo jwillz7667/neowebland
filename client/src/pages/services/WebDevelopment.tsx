@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { SEO } from "@/components/SEO"
 import { useNavigate } from "react-router-dom"
+import { pagesSEO, generateServiceSchema } from "@/data/seoData"
 
 const technologies = [
   { name: "React", logo: "⚛️", description: "Modern UI library for interactive experiences" },
@@ -116,55 +117,48 @@ export function WebDevelopment() {
     window.scrollTo(0, 0)
   }, [])
 
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    "name": "Web Development Services",
-    "description": "Professional web development services including custom web applications, responsive design, and e-commerce solutions.",
-    "provider": {
-      "@type": "Organization",
-      "name": "WebNaster.com",
-      "url": "https://webnaster.com"
-    },
-    "serviceType": "Web Development",
-    "areaServed": "Minneapolis-St. Paul Metro Area",
-    "hasOfferCatalog": {
-      "@type": "OfferCatalog",
-      "name": "Web Development Services",
-      "itemListElement": [
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Custom Web Applications"
-          }
-        },
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Responsive Web Design"
-          }
-        },
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "E-commerce Development"
-          }
+  const breadcrumbs = [
+    { name: "Home", url: "/" },
+    { name: "Services", url: "/services" },
+    { name: "Web Development", url: "/services/web-development" }
+  ]
+
+  const serviceSchema = generateServiceSchema({
+    name: "Custom Web Development",
+    description: "Professional web development services using cutting-edge technologies including React, Node.js, and modern frameworks."
+  })
+
+  const webDevSchema = [
+    serviceSchema,
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": pagesSEO.webDevelopment.title,
+      "description": pagesSEO.webDevelopment.description,
+      "url": "https://webnaster.com/services/web-development",
+      "mainEntity": {
+        "@type": "Service",
+        "name": "Web Development Services",
+        "description": "Custom web development solutions including responsive websites, web applications, and e-commerce platforms.",
+        "serviceType": "Web Development",
+        "provider": {
+          "@type": "Organization",
+          "name": "WebNaster.com"
         }
-      ]
+      }
     }
-  }
+  ]
 
   return (
     <>
       <SEO
-        title="Web Development Services - Custom Web Applications & Responsive Design"
-        description="Professional web development services in Minneapolis. We create custom web applications, responsive websites, and e-commerce solutions using React, Next.js, and modern technologies."
-        keywords="web development Minneapolis, custom web applications, responsive web design, React development, Next.js, e-commerce development, web app development"
+        title={pagesSEO.webDevelopment.title}
+        description={pagesSEO.webDevelopment.description}
+        keywords={pagesSEO.webDevelopment.keywords}
         canonicalUrl="/services/web-development"
-        structuredData={structuredData}
+        ogType={pagesSEO.webDevelopment.ogType}
+        structuredData={webDevSchema}
+        breadcrumbs={breadcrumbs}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
