@@ -15,7 +15,7 @@ class GeminiService {
       console.log('Generating website mockup with Gemini AI for:', companyData.companyName);
 
       const prompt = `
-You are an expert web designer and UX/UI specialist. Generate a comprehensive, professional website mockup for the following company:
+You are an expert web designer, UX/UI specialist, and copywriter. Generate a comprehensive, professional website mockup with SPECIFIC, REALISTIC content for the following company:
 
 Company Name: ${companyData.companyName}
 Industry: ${companyData.industry}
@@ -25,90 +25,223 @@ Preferred Colors: ${companyData.preferredColors || 'Modern and professional'}
 Website Type: ${companyData.websiteType || 'Business website'}
 Desired Features: ${companyData.features || 'Standard business features'}
 
+IMPORTANT: Generate ACTUAL, REALISTIC content - not placeholders. Use the specific company name throughout all content.
+
 Generate a detailed mockup response in the following JSON format:
 {
+  "companyInfo": {
+    "name": "${companyData.companyName}",
+    "tagline": "Compelling, industry-specific tagline for ${companyData.companyName}",
+    "description": "Professional company description (2-3 sentences)",
+    "mission": "Company mission statement",
+    "founded": "Realistic founding year",
+    "location": "Realistic business location"
+  },
   "header": {
-    "logo": "Company logo concept",
+    "logo": "${companyData.companyName}",
+    "logoStyle": "Detailed logo design concept and styling",
     "navigation": ["Home", "About", "Services", "Portfolio", "Contact"],
-    "style": "Navigation bar style description"
+    "style": "Modern, clean navigation with hover effects",
+    "layout": "Horizontal navigation bar with company logo on left"
   },
   "hero": {
-    "title": "Compelling hero headline",
-    "subtitle": "Engaging subtitle",
-    "cta": "Primary call-to-action text",
-    "backgroundConcept": "Hero background concept",
-    "layout": "Hero section layout description"
+    "title": "Powerful, specific headline for ${companyData.companyName} (use actual company name)",
+    "subtitle": "Engaging 1-2 sentence subtitle that speaks to their specific industry and value proposition",
+    "cta": "Action-oriented button text",
+    "secondaryCta": "Secondary action text",
+    "backgroundConcept": "Specific background design concept",
+    "layout": "Hero section layout with call-to-action positioning",
+    "heroImage": "Detailed description of hero image/graphics for this specific industry"
   },
   "sections": [
     {
-      "name": "About Us",
-      "content": "Section content description",
-      "layout": "Layout concept for this section"
+      "name": "About ${companyData.companyName}",
+      "title": "Industry-specific section title",
+      "content": "2-3 paragraphs of realistic content about ${companyData.companyName}, their expertise, and why clients should choose them",
+      "highlights": ["Key point 1", "Key point 2", "Key point 3"],
+      "layout": "Two-column layout with text and image",
+      "visual": "Specific visual/image description for this section"
     },
     {
-      "name": "Services",
-      "content": "Services section content",
-      "layout": "Services layout concept"
+      "name": "Our Services",
+      "title": "Services We Provide",
+      "content": "Overview paragraph about ${companyData.companyName}'s service offerings",
+      "services": [
+        {
+          "name": "Service 1 name (industry-specific)",
+          "description": "Detailed service description",
+          "features": ["Feature 1", "Feature 2", "Feature 3"]
+        },
+        {
+          "name": "Service 2 name (industry-specific)", 
+          "description": "Detailed service description",
+          "features": ["Feature 1", "Feature 2", "Feature 3"]
+        },
+        {
+          "name": "Service 3 name (industry-specific)",
+          "description": "Detailed service description", 
+          "features": ["Feature 1", "Feature 2", "Feature 3"]
+        }
+      ],
+      "layout": "Three-column grid with service cards",
+      "visual": "Icons and imagery for each service"
     },
     {
-      "name": "Portfolio/Gallery",
-      "content": "Portfolio content description",
-      "layout": "Portfolio layout concept"
+      "name": "Why Choose ${companyData.companyName}",
+      "title": "Why Choose ${companyData.companyName}",
+      "content": "Compelling paragraph about competitive advantages",
+      "benefits": [
+        {
+          "title": "Benefit 1 (industry-specific)",
+          "description": "Detailed benefit description",
+          "icon": "Relevant icon description"
+        },
+        {
+          "title": "Benefit 2 (industry-specific)",
+          "description": "Detailed benefit description", 
+          "icon": "Relevant icon description"
+        },
+        {
+          "title": "Benefit 3 (industry-specific)",
+          "description": "Detailed benefit description",
+          "icon": "Relevant icon description"
+        }
+      ],
+      "layout": "Grid layout with icons and descriptions"
     },
     {
-      "name": "Testimonials",
-      "content": "Testimonials section concept",
-      "layout": "Testimonials layout"
+      "name": "Client Testimonials",
+      "title": "What Our Clients Say",
+      "content": "Introduction to testimonials",
+      "testimonials": [
+        {
+          "quote": "Realistic, specific testimonial about ${companyData.companyName}",
+          "author": "Realistic client name",
+          "position": "Job title",
+          "company": "Company name",
+          "rating": 5
+        },
+        {
+          "quote": "Another realistic testimonial highlighting specific benefits",
+          "author": "Another client name", 
+          "position": "Job title",
+          "company": "Company name",
+          "rating": 5
+        }
+      ],
+      "layout": "Testimonial cards with photos and ratings"
     },
     {
-      "name": "Contact",
-      "content": "Contact section details",
-      "layout": "Contact layout concept"
+      "name": "Contact ${companyData.companyName}",
+      "title": "Get In Touch",
+      "content": "Encouraging paragraph about contacting ${companyData.companyName}",
+      "contactInfo": {
+        "phone": "Realistic phone number format",
+        "email": "professional@${companyData.companyName.toLowerCase().replace(/\\s+/g, '')}.com",
+        "address": "Realistic business address",
+        "hours": "Business hours"
+      },
+      "form": {
+        "fields": ["Name", "Email", "Phone", "Service Interest", "Message"],
+        "submitText": "Get Free Consultation"
+      },
+      "layout": "Split layout with contact form and contact information"
     }
   ],
   "designSystem": {
     "colorPalette": {
-      "primary": "#hex-color",
-      "secondary": "#hex-color",
-      "accent": "#hex-color",
-      "background": "#hex-color",
-      "text": "#hex-color"
+      "primary": "Professional hex color for ${companyData.industry}",
+      "secondary": "Complementary hex color",
+      "accent": "Accent hex color",
+      "background": "Background hex color",
+      "text": "Text hex color",
+      "textLight": "Light text hex color",
+      "success": "Success green hex",
+      "neutral": "Neutral gray hex"
     },
     "typography": {
-      "headings": "Font family for headings",
-      "body": "Font family for body text",
-      "style": "Typography style description"
+      "headings": "Professional font family (e.g., 'Poppins', 'Inter', 'Montserrat')",
+      "body": "Readable font family (e.g., 'Open Sans', 'Source Sans Pro')",
+      "headingWeights": "Font weights for headings",
+      "sizes": {
+        "h1": "3.5rem",
+        "h2": "2.5rem", 
+        "h3": "1.75rem",
+        "body": "1rem",
+        "small": "0.875rem"
+      }
     },
-    "layoutStyle": "Overall layout approach",
-    "visualStyle": "Visual design approach"
+    "spacing": {
+      "sectionPadding": "5rem",
+      "elementSpacing": "2rem",
+      "cardPadding": "2rem"
+    },
+    "borderRadius": "0.5rem",
+    "shadows": "Professional shadow system",
+    "layoutStyle": "Modern, clean layout with generous whitespace",
+    "visualStyle": "Professional, conversion-focused design"
+  },
+  "responsiveDesign": {
+    "mobile": {
+      "navigation": "Hamburger menu",
+      "heroLayout": "Single column with adjusted text sizes",
+      "sectionsLayout": "Stacked sections with mobile-optimized spacing"
+    },
+    "tablet": {
+      "navigation": "Condensed horizontal navigation",
+      "heroLayout": "Adjusted hero with balanced text and visual",
+      "sectionsLayout": "Two-column where appropriate"
+    }
   },
   "features": [
     "Responsive mobile-first design",
-    "SEO optimization",
+    "SEO optimization with ${companyData.companyName} branding",
     "Fast loading performance",
-    "Accessibility compliance",
-    "Contact form integration",
-    "Social media integration"
+    "Accessibility compliance (WCAG 2.1)",
+    "Contact form with validation",
+    "Social media integration",
+    "Google Analytics integration",
+    "SSL security certificate",
+    "Industry-specific features for ${companyData.industry}"
   ],
   "technicalRecommendations": [
-    "Recommended technologies",
-    "Performance optimizations",
-    "Security considerations"
+    "Modern framework (React/Next.js or similar)",
+    "Performance optimization techniques",
+    "SEO best practices implementation",
+    "Security considerations for ${companyData.industry}",
+    "Content Management System integration"
   ],
   "contentStrategy": {
-    "tone": "Brand voice and tone",
-    "messaging": "Key messaging strategy",
-    "seoKeywords": ["keyword1", "keyword2", "keyword3"]
-  }
+    "tone": "Professional, trustworthy, and ${companyData.industry}-focused",
+    "messaging": "Key messaging strategy emphasizing ${companyData.companyName}'s unique value",
+    "seoKeywords": ["Industry-specific keyword 1", "Industry-specific keyword 2", "${companyData.companyName}", "Local + industry", "Service + location"],
+    "callsToAction": ["Primary CTA", "Secondary CTA", "Contact CTA"]
+  },
+  "additionalPages": [
+    {
+      "name": "About Us",
+      "purpose": "Detailed company story and team information",
+      "keyContent": "Company history, team bios, mission/vision"
+    },
+    {
+      "name": "Services Detail",
+      "purpose": "In-depth service descriptions",
+      "keyContent": "Service processes, pricing, case studies"
+    },
+    {
+      "name": "Portfolio/Case Studies", 
+      "purpose": "Showcase past work and results",
+      "keyContent": "Project examples, before/after, client results"
+    },
+    {
+      "name": "Blog/Resources",
+      "purpose": "Industry insights and thought leadership",
+      "keyContent": "Industry articles, tips, company news"
+    }
+  ]
 }
 
-Make sure the mockup is:
-1. Industry-specific and tailored to the business
-2. Modern and professional
-3. User-experience focused
-4. Conversion-optimized
-5. Technically sound
-6. Visually appealing
+Make the mockup extremely professional and industry-specific. Use realistic content that a real ${companyData.industry} business would have. Include specific details, actual service names, realistic pricing considerations, and professional copy throughout.
 
 Respond ONLY with the JSON object, no additional text.
 `;
