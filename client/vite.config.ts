@@ -12,7 +12,7 @@ export default defineConfig({
   build: {
     outDir: "dist",
     sourcemap: false,
-    minify: "terser",
+    minify: "esbuild",
     rollupOptions: {
       output: {
         manualChunks: {
@@ -21,12 +21,7 @@ export default defineConfig({
         },
       },
     },
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
+    chunkSizeWarningLimit: 1000,
   },
   server: {
     host: true,
