@@ -16,7 +16,8 @@
     "preview": "cd client && npm run preview",
     "lint": "cd client && npm run lint",
     "clean": "rm -rf client/dist client/node_modules server/node_modules node_modules",
-    "heroku-postbuild": "npm run build:netlify"
+    "heroku-postbuild": "npm run build:netlify",
+    "deploy:server": "cd server && git subtree push --prefix=server heroku main"
   },
   "author": "",
   "license": "ISC",

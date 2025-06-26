@@ -1,16 +1,20 @@
 {
-  "name": "node_server",
+  "name": "webnaster_api_server",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend API for WebNaster.com with AI-powered mockup generator",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["web-design", "api", "mongodb", "ai", "mockup-generator"],
+  "author": "WebNaster.com",
   "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.27.3",
     "@google/generative-ai": "^0.21.0",

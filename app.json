@@ -1,0 +1,46 @@
+{
+  "name": "WebNaster API Server",
+  "description": "Backend API for WebNaster.com with AI-powered mockup generator",
+  "repository": "https://github.com/jwillz7667/neowebland",
+  "logo": "https://webnaster.com/logo.png",
+  "keywords": ["node", "express", "mongodb", "ai", "web-design", "mockup-generator"],
+  "success_url": "/api/health",
+  "env": {
+    "NODE_ENV": {
+      "description": "Node environment",
+      "value": "production"
+    },
+    "DATABASE_URL": {
+      "description": "MongoDB connection string",
+      "required": true
+    },
+    "GEMINI_API_KEY": {
+      "description": "Google Gemini AI API key for mockup generation",
+      "required": true
+    },
+    "JWT_SECRET": {
+      "description": "JWT secret for authentication",
+      "generator": "secret"
+    },
+    "REFRESH_TOKEN_SECRET": {
+      "description": "Refresh token secret",
+      "generator": "secret"
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "stack": "heroku-22",
+  "engines": {
+    "node": "18.x",
+    "npm": "8.x"
+  }
+} 
