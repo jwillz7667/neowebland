@@ -104,6 +104,36 @@ interface MockupData {
   }>;
 }
 
+interface QuoteData {
+  pricing?: {
+    designCost?: number;
+    developmentCost?: number;
+    featuresCost?: number;
+    testingCost?: number;
+    totalCost?: number;
+  };
+  timeline?: {
+    design?: string;
+    development?: string;
+    testing?: string;
+    total?: string;
+  };
+  breakdown?: Array<{
+    phase: string;
+    duration: string;
+    cost?: number;
+    description: string;
+  }>;
+  included?: string[];
+  optional?: Array<{
+    feature: string;
+    cost: number;
+    description: string;
+  }>;
+  recommendations?: string[];
+  nextSteps?: string[];
+}
+
 export function PortfolioSection() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-100px" })
@@ -111,7 +141,7 @@ export function PortfolioSection() {
   const [mockupData, setMockupData] = useState<MockupData | null>(null)
   const [loading, setLoading] = useState(false)
   const [quoteLoading, setQuoteLoading] = useState(false)
-  const [quote, setQuote] = useState<Record<string, unknown> | null>(null)
+  const [quote, setQuote] = useState<QuoteData | null>(null)
   const { toast } = useToast()
 
   const [formData, setFormData] = useState({
@@ -715,7 +745,7 @@ export function PortfolioSection() {
                                   )}
 
                                   {/* Contact Section */}
-                                  {mockupData.sections?.find((s: any) => s.name.includes('Contact')) && (
+                                  {mockupData.sections?.find((s) => s.name.includes('Contact')) && (
                                     <section className="py-16 px-8">
                                       <div className="max-w-7xl mx-auto">
                                         <div className="text-center mb-12">
@@ -726,7 +756,7 @@ export function PortfolioSection() {
                                               fontFamily: mockupData.designSystem?.typography?.headings || 'Inter'
                                             }}
                                           >
-                                            {mockupData.sections.find((s: any) => s.name.includes('Contact'))?.title}
+                                            {mockupData.sections.find((s) => s.name.includes('Contact'))?.title}
                                           </h2>
                                           <p 
                                             className="text-lg"
@@ -734,7 +764,7 @@ export function PortfolioSection() {
                                               color: mockupData.designSystem?.colorPalette?.text || '#374151'
                                             }}
                                           >
-                                            {mockupData.sections.find((s: any) => s.name.includes('Contact'))?.content}
+                                            {mockupData.sections.find((s) => s.name.includes('Contact'))?.content}
                                           </p>
                                         </div>
                                         
@@ -749,37 +779,40 @@ export function PortfolioSection() {
                                               Contact Information
                                             </h3>
                                             <div className="space-y-4">
-                                              {mockupData.sections.find((s: any) => s.name.includes('Contact'))?.contactInfo && (
-                                                <>
-                                                  <div className="flex items-center">
-                                                    <div 
-                                                      className="w-5 h-5 mr-3"
-                                                      style={{
-                                                        backgroundColor: mockupData.designSystem?.colorPalette?.primary || '#3b82f6'
-                                                      }}
-                                                    ></div>
-                                                    <span>{mockupData.sections.find((s: any) => s.name.includes('Contact')).contactInfo.phone}</span>
-                                                  </div>
-                                                  <div className="flex items-center">
-                                                    <div 
-                                                      className="w-5 h-5 mr-3"
-                                                      style={{
-                                                        backgroundColor: mockupData.designSystem?.colorPalette?.primary || '#3b82f6'
-                                                      }}
-                                                    ></div>
-                                                    <span>{mockupData.sections.find((s: any) => s.name.includes('Contact')).contactInfo.email}</span>
-                                                  </div>
-                                                  <div className="flex items-center">
-                                                    <div 
-                                                      className="w-5 h-5 mr-3"
-                                                      style={{
-                                                        backgroundColor: mockupData.designSystem?.colorPalette?.primary || '#3b82f6'
-                                                      }}
-                                                    ></div>
-                                                    <span>{mockupData.sections.find((s: any) => s.name.includes('Contact')).contactInfo.address}</span>
-                                                  </div>
-                                                </>
-                                              )}
+                                              {(() => {
+                                                const contactSection = mockupData.sections.find((s) => s.name.includes('Contact'));
+                                                return contactSection?.contactInfo && (
+                                                  <>
+                                                    <div className="flex items-center">
+                                                      <div 
+                                                        className="w-5 h-5 mr-3"
+                                                        style={{
+                                                          backgroundColor: mockupData.designSystem?.colorPalette?.primary || '#3b82f6'
+                                                        }}
+                                                      ></div>
+                                                      <span>{contactSection.contactInfo.phone}</span>
+                                                    </div>
+                                                    <div className="flex items-center">
+                                                      <div 
+                                                        className="w-5 h-5 mr-3"
+                                                        style={{
+                                                          backgroundColor: mockupData.designSystem?.colorPalette?.primary || '#3b82f6'
+                                                        }}
+                                                      ></div>
+                                                      <span>{contactSection.contactInfo.email}</span>
+                                                    </div>
+                                                    <div className="flex items-center">
+                                                      <div 
+                                                        className="w-5 h-5 mr-3"
+                                                        style={{
+                                                          backgroundColor: mockupData.designSystem?.colorPalette?.primary || '#3b82f6'
+                                                        }}
+                                                      ></div>
+                                                      <span>{contactSection.contactInfo.address}</span>
+                                                    </div>
+                                                  </>
+                                                );
+                                              })()}
                                             </div>
                                           </div>
                                           
@@ -793,19 +826,22 @@ export function PortfolioSection() {
                                               Get In Touch
                                             </h3>
                                             <div className="space-y-4">
-                                              {mockupData.sections.find((s: any) => s.name.includes('Contact'))?.form?.fields?.map((field: string, index: number) => (
-                                                <div key={index}>
-                                                  <div 
-                                                    className="w-full h-12 rounded border px-3 flex items-center"
-                                                    style={{
-                                                      borderColor: mockupData.designSystem?.colorPalette?.neutral || '#e5e7eb',
-                                                      backgroundColor: '#ffffff'
-                                                    }}
-                                                  >
-                                                    <span className="text-gray-400">{field}</span>
+                                              {(() => {
+                                                const contactSection = mockupData.sections.find((s) => s.name.includes('Contact'));
+                                                return contactSection?.form?.fields?.map((field: string, index: number) => (
+                                                  <div key={index}>
+                                                    <div 
+                                                      className="w-full h-12 rounded border px-3 flex items-center"
+                                                      style={{
+                                                        borderColor: mockupData.designSystem?.colorPalette?.neutral || '#e5e7eb',
+                                                        backgroundColor: '#ffffff'
+                                                      }}
+                                                    >
+                                                      <span className="text-gray-400">{field}</span>
+                                                    </div>
                                                   </div>
-                                                </div>
-                                              ))}
+                                                ));
+                                              })()}
                                               <button 
                                                 className="w-full py-3 rounded font-semibold"
                                                 style={{
@@ -813,7 +849,10 @@ export function PortfolioSection() {
                                                   color: '#ffffff'
                                                 }}
                                               >
-                                                {mockupData.sections.find((s: any) => s.name.includes('Contact'))?.form?.submitText || 'Send Message'}
+                                                {(() => {
+                                                  const contactSection = mockupData.sections.find((s) => s.name.includes('Contact'));
+                                                  return contactSection?.form?.submitText || 'Send Message';
+                                                })()}
                                               </button>
                                             </div>
                                           </div>
