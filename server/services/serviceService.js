@@ -1,4 +1,5 @@
 const Service = require('../models/Service');
+const mongoose = require('mongoose');
 
 class ServiceService {
   async createService(serviceData) {
@@ -16,12 +17,22 @@ class ServiceService {
 
   async getAllServices() {
     try {
+      // Check database connection first
+      if (mongoose.connection.readyState !== 1) {
+        throw new Error('Database not connected. Connection state: ' + mongoose.connection.readyState);
+      }
+
       console.log('Service: Fetching all services from database');
       const services = await Service.find({ status: { $ne: 'draft' } }).sort({ order: 1, createdAt: -1 });
       console.log(`Service: Database query completed. Found ${services.length} services`);
 
       if (services.length === 0) {
-        console.log('Service: No services found in database. Database might be empty.');
+        console.log('Service: No services found in database. Seeding default services...');
+        await this.seedDefaultServices();
+        // Fetch again after seeding
+        const seededServices = await Service.find({ status: { $ne: 'draft' } }).sort({ order: 1, createdAt: -1 });
+        console.log(`Service: After seeding, found ${seededServices.length} services`);
+        return seededServices;
       } else {
         console.log('Service: First service sample:', {
           id: services[0]._id,
@@ -35,6 +46,69 @@ class ServiceService {
       console.error('Service: Error fetching services:', error.message);
       console.error('Service: Error stack:', error.stack);
       throw new Error(`Failed to fetch services: ${error.message}`);
+    }
+  }
+
+  async seedDefaultServices() {
+    try {
+      console.log('Service: Seeding default services...');
+      const defaultServices = [
+        {
+          title: "Web Development",
+          description: "Custom websites built with cutting-edge technologies and optimized for performance.",
+          features: ["React & Next.js", "Node.js Backend", "Database Integration", "API Development"],
+          icon: "Code",
+          status: "active",
+          order: 1
+        },
+        {
+          title: "UI/UX Design", 
+          description: "Beautiful, intuitive designs that create memorable user experiences.",
+          features: ["User Research", "Wireframing", "Prototyping", "Design Systems"],
+          icon: "Palette",
+          status: "active",
+          order: 2
+        },
+        {
+          title: "Mobile Apps",
+          description: "Native and cross-platform mobile applications for iOS and Android.",
+          features: ["React Native", "Flutter", "Native iOS/Android", "App Store Optimization"],
+          icon: "Smartphone",
+          status: "active",
+          order: 3
+        },
+        {
+          title: "E-commerce",
+          description: "Complete e-commerce solutions that drive sales and grow your business.",
+          features: ["Shopify", "WooCommerce", "Custom Solutions", "Payment Integration"],
+          icon: "Globe",
+          status: "active",
+          order: 4
+        },
+        {
+          title: "Performance Optimization",
+          description: "Speed up your website and improve user experience with our optimization services.",
+          features: ["Core Web Vitals", "SEO Optimization", "CDN Setup", "Caching Strategies"],
+          icon: "Zap",
+          status: "active",
+          order: 5
+        },
+        {
+          title: "Consulting",
+          description: "Strategic guidance to help you make the right technology decisions.",
+          features: ["Technology Audit", "Architecture Planning", "Team Training", "Project Management"],
+          icon: "Users",
+          status: "active",
+          order: 6
+        }
+      ];
+
+      const createdServices = await Service.insertMany(defaultServices);
+      console.log(`Service: Successfully seeded ${createdServices.length} default services`);
+      return createdServices;
+    } catch (error) {
+      console.error('Service: Error seeding default services:', error.message);
+      throw error;
     }
   }
 

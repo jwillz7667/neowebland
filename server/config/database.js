@@ -5,14 +5,16 @@ const connectionOptions = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   maxPoolSize: 10, // Maximum number of connections
-  serverSelectionTimeoutMS: 5000, // How long to try selecting a server
+  serverSelectionTimeoutMS: 10000, // Increased timeout for server selection
   socketTimeoutMS: 45000, // How long a socket stays open
+  connectTimeoutMS: 10000, // How long to wait for initial connection
   family: 4, // Use IPv4, skip trying IPv6
   retryWrites: true,
   w: 'majority', // Write concern
   readPreference: 'primary', // Read from primary for consistency
   bufferMaxEntries: 0, // Disable mongoose buffering
-  bufferCommands: false, // Disable mongoose buffering
+  bufferCommands: true, // Enable buffering to queue commands while connecting
+  maxBufferSize: 16777216, // 16MB buffer size
 };
 
 const connectDB = async () => {

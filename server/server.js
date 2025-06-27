@@ -63,35 +63,41 @@ function validateEnvironment() {
   return { valid: true, canStartLimited: true };
 }
 
-// Initialize database connection (non-blocking)
+// Initialize database connection with improved retry logic
 async function initializeDatabase() {
   if (!requiredEnvVars.DATABASE_URL) {
     console.warn('⚠️  Skipping database connection - DATABASE_URL not provided');
     return;
   }
 
-  try {
-    console.log('🔌 Attempting database connection...');
-    await connectDB();
-    serviceStatus.database = true;
-    console.log('✅ Database connected successfully');
-  } catch (error) {
-    console.error('❌ Database connection failed:', error.message);
-    console.warn('⚠️  Server running in limited mode without database');
-    serviceStatus.database = false;
-    
-    // Retry connection in background (non-blocking)
-    setTimeout(async () => {
-      try {
-        console.log('🔄 Retrying database connection...');
-        await connectDB();
-        serviceStatus.database = true;
-        console.log('✅ Database connection restored');
-      } catch (retryError) {
-        console.error('❌ Database retry failed:', retryError.message);
+  const maxRetries = 5;
+  let retryCount = 0;
+
+  const attemptConnection = async () => {
+    try {
+      console.log(`🔌 Attempting database connection... (${retryCount + 1}/${maxRetries})`);
+      await connectDB();
+      serviceStatus.database = true;
+      console.log('✅ Database connected successfully');
+      return true;
+    } catch (error) {
+      retryCount++;
+      console.error(`❌ Database connection failed (attempt ${retryCount}/${maxRetries}):`, error.message);
+      
+      if (retryCount < maxRetries) {
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 30000); // Exponential backoff, max 30s
+        console.log(`🔄 Retrying in ${delay/1000} seconds...`);
+        setTimeout(attemptConnection, delay);
+      } else {
+        console.error('💥 Database connection failed after all retries');
+        serviceStatus.database = false;
       }
-    }, 30000); // Retry after 30 seconds
-  }
+      return false;
+    }
+  };
+
+  // Start initial connection attempt
+  await attemptConnection();
 }
 
 // Main server startup function
@@ -137,6 +143,22 @@ async function startServer() {
   app.on("error", (error) => {
     console.error(`🚨 Server error: ${error.message}`);
     console.error(error.stack);
+  });
+
+  // Database-dependent route middleware (MUST be before routes)
+  app.use('/api', (req, res, next) => {
+    // For routes that require database, check status
+    const databaseRequiredRoutes = ['/portfolio', '/contacts', '/services'];
+    const requiresDatabase = databaseRequiredRoutes.some(route => req.path.startsWith(route));
+    
+    if (requiresDatabase && !serviceStatus.database) {
+      return res.status(503).json({
+        error: 'Service Unavailable',
+        message: 'Database connection required for this endpoint',
+        status: 'degraded'
+      });
+    }
+    next();
   });
 
   // Routes
@@ -205,21 +227,7 @@ async function startServer() {
     });
   });
 
-  // Database-dependent route middleware
-  app.use('/api', (req, res, next) => {
-    // For routes that require database, check status
-    const databaseRequiredRoutes = ['/portfolio', '/contacts', '/services'];
-    const requiresDatabase = databaseRequiredRoutes.some(route => req.path.startsWith(route));
-    
-    if (requiresDatabase && !serviceStatus.database) {
-      return res.status(503).json({
-        error: 'Service Unavailable',
-        message: 'Database connection required for this endpoint',
-        status: 'degraded'
-      });
-    }
-    next();
-  });
+
 
   // Global error handling
   app.use((err, req, res, next) => {
