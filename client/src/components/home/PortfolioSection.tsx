@@ -3,15 +3,14 @@ import React, { useState, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader } from '../ui/dialog';
 import { 
   Maximize, 
   Monitor, 
   Smartphone, 
   Tablet, 
   Minimize, 
-  ZoomIn, 
-  ZoomOut,
+  ZoomIn,
   Eye,
   Palette,
   Code,
@@ -89,7 +88,11 @@ interface MockupData {
     name: string;
     title: string;
     content: string;
-    [key: string]: any;
+    services?: ServiceItem[];
+    testimonials?: TestimonialItem[];
+    highlights?: string[];
+    contactInfo?: ContactInfo;
+    form?: FormConfig;
   }>;
   designSystem: {
     templateId: string;
@@ -121,16 +124,31 @@ interface QuoteData {
   next_steps: string[];
 }
 
-// Mock Services Data
-const mockServices = [
-  {
-    _id: '1',
-    name: 'AI Website Mockup Generator',
-    description: 'Professional website designs with AI-powered customization',
-    category: 'Web Design',
-    features: ['Template-based designs', 'Industry-specific layouts', 'Responsive mockups']
-  }
-];
+interface ServiceItem {
+  name: string;
+  description: string;
+  features?: string[];
+}
+
+interface TestimonialItem {
+  quote: string;
+  author: string;
+  position?: string;
+  company?: string;
+}
+
+interface ContactInfo {
+  phone: string;
+  email: string;
+  address: string;
+  hours?: string;
+}
+
+interface FormConfig {
+  submitText?: string;
+}
+
+
 
 // Viewport Size Options
 type ViewportSize = 'small' | 'medium' | 'large' | 'mobile' | 'tablet' | 'desktop';
@@ -399,7 +417,7 @@ const MockupRenderer: React.FC<{
             
             {section.name.toLowerCase().includes('service') && section.services && (
               <div style={serviceGridStyle}>
-                {section.services.map((service: any, serviceIndex: number) => (
+                {section.services.map((service: ServiceItem, serviceIndex: number) => (
                   <div key={serviceIndex} style={cardStyle}>
                     <h3 style={{ 
                       color: colors.primary, 
@@ -427,7 +445,7 @@ const MockupRenderer: React.FC<{
 
             {section.name.toLowerCase().includes('testimonial') && section.testimonials && (
               <div>
-                {section.testimonials.map((testimonial: any, testimonialIndex: number) => (
+                {section.testimonials.map((testimonial: TestimonialItem, testimonialIndex: number) => (
                   <div key={testimonialIndex} style={testimonialStyle}>
                     <p style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>
                       "{testimonial.quote}"
@@ -635,7 +653,7 @@ const MockupRenderer: React.FC<{
             </div>
             <div>
               <h4 style={{ marginBottom: '1rem', fontWeight: 'bold' }}>Services</h4>
-              {mockup.sections.find(s => s.name.toLowerCase().includes('service'))?.services?.slice(0, 3).map((service: any, index: number) => (
+              {mockup.sections.find(s => s.name.toLowerCase().includes('service'))?.services?.slice(0, 3).map((service: ServiceItem, index: number) => (
                 <p key={index} style={{ marginBottom: '0.5rem' }}>{service.name}</p>
               ))}
             </div>
@@ -698,7 +716,7 @@ const PortfolioSection: React.FC = () => {
   const [quote, setQuote] = useState<QuoteData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [services, setServices] = useState(mockServices);
+
   const [currentViewport, setCurrentViewport] = useState<ViewportSize>('medium');
   const [showFullScreen, setShowFullScreen] = useState(false);
 
