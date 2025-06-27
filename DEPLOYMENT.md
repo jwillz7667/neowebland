@@ -1,5 +1,9 @@
 # Railway Deployment Guide
 
+## ⚠️ **SECURITY WARNING**
+**NEVER commit actual database credentials or API keys to version control!**
+All values below are placeholders - replace with your actual credentials in Railway environment variables only.
+
 ## Critical Environment Variables
 
 Your application requires the following environment variables to be set in your Railway project:
@@ -9,11 +13,12 @@ Your application requires the following environment variables to be set in your 
 1. **DATABASE_URL** (Critical)
    ```
    Variable: DATABASE_URL
-   Value: mongodb+srv://username:password@cluster.mongodb.net/database_name
+   Value: mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE_NAME
    ```
    - This is your MongoDB connection string
    - **MUST** be set for the application to start
    - Get this from MongoDB Atlas or your MongoDB provider
+   - **NEVER** commit actual credentials to version control
 
 ### Optional Variables (Recommended)
 

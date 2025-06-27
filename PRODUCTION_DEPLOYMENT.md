@@ -1,5 +1,9 @@
 # Production Deployment Guide - WebNaster.com
 
+## ⚠️ **SECURITY WARNING**
+**NEVER commit actual database credentials or API keys to version control!**
+All values below are placeholders - replace with your actual credentials in Railway environment variables only.
+
 ## 🚀 Complete Production Setup for Railway + Netlify
 
 ### Architecture Overview
@@ -24,13 +28,13 @@
    
    ```env
    # Required Variables
-   DATABASE_URL=mongodb+srv://username:password@cluster.mongodb.net/webnaster_db
+   DATABASE_URL=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE_NAME
    NODE_ENV=production
    PORT=3000
    
    # Optional but Recommended
-   GEMINI_API_KEY=your_google_gemini_api_key
-   SESSION_SECRET=your_secure_random_string_32_chars_min
+   GEMINI_API_KEY=YOUR_GOOGLE_GEMINI_API_KEY_HERE
+   SESSION_SECRET=YOUR_SECURE_RANDOM_STRING_32_CHARS_MIN
    ALLOWED_ORIGINS=https://webnaster.com,https://www.webnaster.com,https://api.webnaster.com
    ```
 
@@ -307,7 +311,7 @@ openssl s_client -connect webnaster.com:443 -servername webnaster.com
 ```bash
 # MongoDB Atlas automatic backups enabled
 # Manual backup command:
-mongodump --uri="mongodb+srv://username:password@cluster.mongodb.net/webnaster_db"
+mongodump --uri="mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE_NAME"
 ```
 
 ### Code Backup
