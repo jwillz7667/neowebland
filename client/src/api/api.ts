@@ -1,6 +1,4 @@
 import axios, { AxiosRequestConfig, AxiosError, InternalAxiosRequestConfig } from 'axios';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const JSONbig = require('json-bigint');
 
 // Environment-based API configuration
 const getApiBaseUrl = (): string => {
@@ -36,7 +34,7 @@ const localApi = axios.create({
   transformResponse: [
     (data) => {
       try {
-        return JSONbig.parse(data);
+        return JSON.parse(data);
       } catch {
         return data;
       }
