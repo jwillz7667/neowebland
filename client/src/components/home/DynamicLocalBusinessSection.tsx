@@ -207,7 +207,7 @@ export function DynamicLocalBusinessSection() {
             Serving Small Businesses Throughout {locationConfig.city} and Surrounding Areas
           </h3>
           <div className="flex flex-wrap justify-center gap-3 mb-8">
-            {locationConfig.areas.map((area, index) => (
+            {locationConfig.areas.map((area) => (
               <Badge
                 key={area}
                 variant="outline"
