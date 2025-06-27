@@ -22,13 +22,6 @@ export const useGeolocation = () => {
       console.log('useGeolocation: Starting professional location detection')
       
       try {
-        // Try multiple IP-based services in order of reliability
-        const services = [
-          'https://ipapi.co/json/',
-          'https://api.ipify.org?format=json', // Fallback 1
-          'https://httpbin.org/ip' // Fallback 2
-        ]
-
         let locationData = null
 
         // Try primary IP service with CSP-safe error handling
@@ -54,7 +47,7 @@ export const useGeolocation = () => {
             }
           }
         } catch (error) {
-          console.log('useGeolocation: Primary IP service failed (likely CSP-blocked):', error.message)
+          console.log('useGeolocation: Primary IP service failed (likely CSP-blocked):', error instanceof Error ? error.message : String(error))
           // CSP blocking is expected, continue to fallback
         }
 
@@ -89,7 +82,7 @@ export const useGeolocation = () => {
         })
 
       } catch (error) {
-        console.error('useGeolocation: All location detection failed:', error)
+        console.error('useGeolocation: All location detection failed:', error instanceof Error ? error.message : String(error))
         
         // Ultimate fallback - use Minneapolis as default
         setLocation({
