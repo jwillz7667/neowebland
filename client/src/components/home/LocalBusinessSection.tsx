@@ -199,7 +199,7 @@ export function LocalBusinessSection() {
             Serving Small Businesses Throughout the Twin Cities Metro
           </h3>
           <div className="flex flex-wrap justify-center gap-3 mb-8">
-            {twinCitiesAreas.map((area, index) => (
+            {twinCitiesAreas.map((area) => (
               <Badge
                 key={area}
                 variant="outline"
