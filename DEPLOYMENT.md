@@ -13,9 +13,13 @@ Your application requires the following environment variables to be set in your 
 1. **DATABASE_URL** (Critical)
    ```
    Variable: DATABASE_URL
-   Value: mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE_NAME
+   Value: [Get from MongoDB Atlas - Connect -> Connect your application]
    ```
-   - This is your MongoDB connection string
+   **MongoDB Connection String Format:**
+   - Protocol: `mongodb+srv://`
+   - Credentials: `<username>:<password>@` 
+   - Host: `<cluster>.mongodb.net/` 
+   - Database: `<database_name>`
    - **MUST** be set for the application to start
    - Get this from MongoDB Atlas or your MongoDB provider
    - **NEVER** commit actual credentials to version control

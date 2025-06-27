@@ -28,15 +28,20 @@ All values below are placeholders - replace with your actual credentials in Rail
    
    ```env
    # Required Variables
-   DATABASE_URL=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE_NAME
+   DATABASE_URL=[Get from MongoDB Atlas Dashboard]
    NODE_ENV=production
    PORT=3000
    
    # Optional but Recommended
-   GEMINI_API_KEY=YOUR_GOOGLE_GEMINI_API_KEY_HERE
-   SESSION_SECRET=YOUR_SECURE_RANDOM_STRING_32_CHARS_MIN
+   GEMINI_API_KEY=[Get from Google AI Studio]
+   SESSION_SECRET=[Generate with: openssl rand -hex 32]
    ALLOWED_ORIGINS=https://webnaster.com,https://www.webnaster.com,https://api.webnaster.com
    ```
+   
+   **MongoDB Connection String Components:**
+   - Get from MongoDB Atlas: Connect → Connect your application
+   - Format: `mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/<db>`
+   - Replace `<user>`, `<pass>`, `<cluster>`, and `<db>` with your actual values
 
 3. **Custom Domain Setup**
    ```bash
@@ -311,7 +316,7 @@ openssl s_client -connect webnaster.com:443 -servername webnaster.com
 ```bash
 # MongoDB Atlas automatic backups enabled
 # Manual backup command:
-mongodump --uri="mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/YOUR_DATABASE_NAME"
+mongodump --uri="[Use your actual MongoDB connection string here]"
 ```
 
 ### Code Backup
