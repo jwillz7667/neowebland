@@ -6,7 +6,20 @@ import { Badge } from "@/components/ui/badge"
 import { getServices } from "@/api/services"
 import { useToast } from "@/hooks/useToast"
 
-const iconMap: { [key: string]: any } = {
+// TypeScript interfaces
+interface Service {
+  _id: string
+  icon: string
+  title: string
+  description: string
+  features: string[]
+  color: string
+  status?: string
+}
+
+type IconComponent = React.ComponentType<React.SVGProps<SVGSVGElement>>
+
+const iconMap: { [key: string]: IconComponent } = {
   Code,
   Palette,
   Smartphone,
@@ -79,7 +92,7 @@ const colorOptions = [
 export function ServicesSection() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-100px" })
-  const [services, setServices] = useState<any[]>([])
+  const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
 
@@ -91,18 +104,18 @@ export function ServicesSection() {
         console.log("ServicesSection: Services data loaded:", data)
 
         // Map API data to include colors and proper icons
-        const mappedServices = data.services.map((service: any, index: number) => ({
+        const mappedServices = data.services.map((service: Service, index: number) => ({
           ...service,
           icon: service.icon || 'Code',
           color: colorOptions[index % colorOptions.length]
         }))
 
         setServices(mappedServices)
-      } catch (error: any) {
-        console.error("ServicesSection: Error loading services:", error.message)
+      } catch (error) {
+        console.error("ServicesSection: Error loading services:", error instanceof Error ? error.message : String(error))
         toast({
           title: "Error loading services",
-          description: error.message,
+          description: error instanceof Error ? error.message : "An error occurred",
           variant: "destructive",
         })
         // Use fallback services if API fails
