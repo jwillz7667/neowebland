@@ -4,16 +4,16 @@
   command = "npm run build:netlify"
 
 [build.environment]
-  NODE_VERSION = "18"
-  NPM_VERSION = "8"
-  # Production API URL - update this with your actual Railway URL
-  VITE_API_URL = "https://your-railway-app.railway.app"
+  NODE_VERSION = "20"
+  NPM_VERSION = "10"
+  # Production API URL - points to your Railway custom domain
+  VITE_API_URL = "https://api.webnaster.com"
   NODE_ENV = "production"
 
 # Production redirects and routing
 [[redirects]]
   from = "/api/*"
-  to = "https://your-railway-app.railway.app/api/:splat"
+  to = "https://api.webnaster.com/api/:splat"
   status = 200
   force = false
   headers = {X-From = "Netlify"}
@@ -32,13 +32,13 @@
 # Branch deploy context
 [context.branch-deploy]
   [context.branch-deploy.environment]
-    VITE_API_URL = "https://your-railway-app.railway.app"
+    VITE_API_URL = "https://api.webnaster.com"
     NODE_ENV = "staging"
 
 # Deploy preview context  
 [context.deploy-preview]
   [context.deploy-preview.environment]
-    VITE_API_URL = "https://your-railway-app.railway.app"
+    VITE_API_URL = "https://api.webnaster.com"
     NODE_ENV = "preview"
 
 # Sitemap plugin

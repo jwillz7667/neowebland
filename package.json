@@ -12,7 +12,7 @@
     "start": "concurrently -n \"client,server\" \"npm run client\" \"npm run server\"",
     "debug": "concurrently -n \"client,server\" \"npm run client\" \"cross-env NODE_OPTIONS=--inspect-brk=9229 npm run server\"",
     "build": "cd client && npm run build",
-    "build:netlify": "npm run client-install && cd client && npm run build",
+    "build:netlify": "cd client && npm ci --include=dev && npm run build",
     "preview": "cd client && npm run preview",
     "lint": "cd client && npm run lint",
     "clean": "rm -rf client/dist client/node_modules server/node_modules node_modules",
@@ -29,7 +29,7 @@
     "cross-env": "^7.0.3"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
   }
 }
