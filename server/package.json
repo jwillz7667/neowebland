@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
+    "railway:deploy": "node server.js",
+    "health:check": "curl -f http://localhost:3000/api/health || exit 1",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["web-design", "api", "mongodb", "ai", "mockup-generator"],

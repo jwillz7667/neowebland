@@ -3,17 +3,151 @@ const WebsiteTemplates = require('./websiteTemplates');
 
 class GeminiService {
   constructor() {
+    this.isAvailable = false;
+    this.genAI = null;
+    this.model = null;
+    
     if (!process.env.GEMINI_API_KEY) {
-      console.error('GEMINI_API_KEY not found in environment variables');
+      console.warn('⚠️  GEMINI_API_KEY not found - AI features will use fallback responses');
+      console.warn('💡 Set GEMINI_API_KEY in Railway variables to enable full AI functionality');
       return;
     }
-    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    
+    try {
+      this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+      this.isAvailable = true;
+      console.log('✅ Gemini AI service initialized successfully');
+    } catch (error) {
+      console.error('❌ Failed to initialize Gemini AI:', error.message);
+      console.warn('🔄 AI features will use fallback responses');
+    }
+  }
+
+  // Check if AI service is available
+  isServiceAvailable() {
+    return this.isAvailable && this.model !== null;
+  }
+
+  // Generate fallback mockup when AI is unavailable
+  generateFallbackMockup(companyData) {
+    console.log('🔄 Generating fallback mockup for:', companyData.companyName);
+    
+    // Get the appropriate template based on industry
+    const template = WebsiteTemplates.getTemplateByIndustry(companyData.industry, companyData.websiteType);
+    
+    return {
+      templateUsed: template.templateId,
+      companyInfo: {
+        name: companyData.companyName,
+        tagline: `Professional ${companyData.industry} Services`,
+        description: `${companyData.companyName} is a leading provider of ${companyData.industry} solutions, dedicated to delivering exceptional results for our clients.`,
+        mission: `To provide innovative ${companyData.industry} solutions that drive success`,
+        founded: "2020",
+        location: "Minneapolis, MN",
+        phone: "(612) 555-0123",
+        email: `info@${companyData.companyName.toLowerCase().replace(/\s+/g, '')}.com`,
+        address: "123 Business Ave, Minneapolis, MN 55404"
+      },
+      header: {
+        logo: companyData.companyName,
+        logoStyle: `Professional logo design for ${companyData.industry}`,
+        navigation: ["Home", "About", "Services", "Portfolio", "Contact"],
+        style: template.layout.headerStyle,
+        layout: "Clean, professional header design"
+      },
+      hero: {
+        title: `Leading ${companyData.industry} Solutions`,
+        subtitle: `Experience excellence with ${companyData.companyName}'s professional services`,
+        cta: "Get Started Today",
+        secondaryCta: "Learn More",
+        backgroundConcept: `Hero background for ${companyData.industry} business`,
+        layout: template.layout.heroStyle,
+        heroImage: `Professional imagery showcasing ${companyData.industry} services`
+      },
+      sections: [
+        {
+          name: `About ${companyData.companyName}`,
+          title: "About Our Company",
+          content: `${companyData.companyName} specializes in ${companyData.industry} services with a commitment to quality and innovation. Our experienced team delivers results that exceed expectations.`,
+          highlights: [
+            "Expert team with years of experience",
+            "Quality-focused approach",
+            "Customer satisfaction guaranteed"
+          ],
+          layout: "Professional about section",
+          visual: `About section imagery for ${companyData.industry}`
+        },
+        {
+          name: "Our Services",
+          title: "What We Offer",
+          content: `Comprehensive ${companyData.industry} services tailored to your needs.`,
+          services: [
+            {
+              name: `Core ${companyData.industry} Service`,
+              description: `Professional ${companyData.industry} solutions designed for your business`,
+              features: ["Professional quality", "Timely delivery", "Expert support"],
+              icon: "Service icon"
+            },
+            {
+              name: `Advanced ${companyData.industry} Solutions`,
+              description: `Advanced solutions for complex requirements`,
+              features: ["Custom approach", "Scalable solutions", "Ongoing support"],
+              icon: "Advanced icon"
+            },
+            {
+              name: `Consulting Services`,
+              description: `Expert consultation and strategic planning`,
+              features: ["Strategic planning", "Expert advice", "Implementation support"],
+              icon: "Consulting icon"
+            }
+          ],
+          layout: "Grid layout with service cards",
+          visual: `Service imagery for ${companyData.industry}`
+        }
+      ],
+      designSystem: {
+        templateId: template.templateId,
+        colorPalette: template.colorScheme,
+        typography: template.typography,
+        spacing: template.spacing,
+        layout: template.layout,
+        customizations: "Template-based design system"
+      },
+      features: [
+        "Responsive mobile-first design",
+        "SEO optimization",
+        "Fast loading performance",
+        "Professional template foundation",
+        "Industry-appropriate design"
+      ],
+      technicalRecommendations: [
+        "Modern web framework",
+        "Performance optimization",
+        "SEO best practices",
+        "Security considerations",
+        "Mobile responsiveness"
+      ],
+      contentStrategy: {
+        tone: "Professional and trustworthy",
+        messaging: `Expert ${companyData.industry} services`,
+        seoKeywords: [companyData.industry, "professional", "services", "quality"],
+        callsToAction: ["Contact Us", "Get Quote", "Learn More"]
+      },
+      isAIGenerated: false,
+      fallbackNotice: "This mockup was generated using template-based fallback due to AI service unavailability"
+    };
   }
 
   async generateWebsiteMockup(companyData) {
     try {
-      console.log('Generating website mockup with professional templates for:', companyData.companyName);
+      console.log('Generating website mockup for:', companyData.companyName);
+
+      // Check if AI service is available
+      if (!this.isServiceAvailable()) {
+        console.warn('🔄 AI service unavailable, using fallback mockup generation');
+        return this.generateFallbackMockup(companyData);
+      }
 
       // Get the appropriate template based on industry
       const template = WebsiteTemplates.getTemplateByIndustry(companyData.industry, companyData.websiteType);
@@ -226,7 +360,7 @@ Respond ONLY with the JSON object, no additional text.
       const response = await result.response;
       const text = response.text();
       
-      console.log('Raw Gemini response:', text);
+      console.log('Raw Gemini response length:', text.length);
 
       // Parse the JSON response
       let mockupData;
@@ -240,18 +374,21 @@ Respond ONLY with the JSON object, no additional text.
         }
       } catch (parseError) {
         console.error('Error parsing Gemini response:', parseError);
-        throw new Error('Failed to parse AI response');
+        console.warn('🔄 Falling back to template-based mockup generation');
+        return this.generateFallbackMockup(companyData);
       }
 
       // Add template information to the response
       mockupData.template = template;
+      mockupData.isAIGenerated = true;
       
-      console.log('Generated mockup using template:', template.templateId);
+      console.log('✅ Generated AI-powered mockup using template:', template.templateId);
       return mockupData;
 
     } catch (error) {
-      console.error('Error generating mockup with Gemini:', error);
-      throw new Error(`Failed to generate mockup: ${error.message}`);
+      console.error('❌ Error generating mockup with Gemini:', error);
+      console.warn('🔄 Falling back to template-based mockup generation');
+      return this.generateFallbackMockup(companyData);
     }
   }
 

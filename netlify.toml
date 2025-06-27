@@ -6,15 +6,48 @@
 [build.environment]
   NODE_VERSION = "18"
   NPM_VERSION = "8"
+  # Production API URL - update this with your actual Railway URL
+  VITE_API_URL = "https://your-railway-app.railway.app"
+  NODE_ENV = "production"
+
+# Production redirects and routing
+[[redirects]]
+  from = "/api/*"
+  to = "https://your-railway-app.railway.app/api/:splat"
+  status = 200
+  force = false
+  headers = {X-From = "Netlify"}
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
+# Development context (for branch deployments)
+[context.development]
+  [context.development.environment]
+    VITE_API_URL = "http://localhost:3000"
+    NODE_ENV = "development"
+
+# Branch deploy context
+[context.branch-deploy]
+  [context.branch-deploy.environment]
+    VITE_API_URL = "https://your-railway-app.railway.app"
+    NODE_ENV = "staging"
+
+# Deploy preview context  
+[context.deploy-preview]
+  [context.deploy-preview.environment]
+    VITE_API_URL = "https://your-railway-app.railway.app"
+    NODE_ENV = "preview"
+
+# Sitemap plugin
 [[plugins]]
   package = "@netlify/plugin-sitemap"
+  [plugins.inputs]
+    baseUrl = "https://webnaster.com"
 
+# Build optimization
 [build.processing]
   skip_processing = false
 
@@ -29,6 +62,7 @@
 [build.processing.html]
   pretty_urls = true
 
+# Security headers
 [[headers]]
   for = "/*"
   [headers.values]
@@ -36,8 +70,11 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), vr=(), accelerometer=(), gyroscope=(), magnetometer=(), clipboard-read=(), clipboard-write=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.webnaster.com https://*.railway.app https://www.google-analytics.com; frame-ancestors 'none';"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
 
+# Static asset caching
 [[headers]]
   for = "/assets/*"
   [headers.values]
@@ -49,6 +86,46 @@
     Cache-Control = "public, max-age=31536000, immutable"
 
 [[headers]]
-  for = "*.css"
+  for = "*.css"  
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable" 
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.woff"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.woff2"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# API routes caching
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# HTML caching
+[[headers]]
+  for = "*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Manifest and service worker
+[[headers]]
+  for = "/site.webmanifest"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    Content-Type = "application/manifest+json"
+
+# Error pages
+[[redirects]]
+  from = "/admin/*"
+  to = "/admin/index.html"
+  status = 200
+  conditions = {Role = ["admin"]}
+
+# Form handling (if you have contact forms)
+[build.processing.images]
+  compress = true 

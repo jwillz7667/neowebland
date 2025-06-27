@@ -3,7 +3,7 @@ const geminiService = require('./geminiService');
 
 class ChatbotService {
   constructor() {
-    console.log('ChatbotService initialized');
+    console.log('✅ ChatbotService initialized');
   }
 
   async sendMessage(conversationId, message, userId = 'anonymous') {
@@ -50,8 +50,15 @@ class ChatbotService {
         timestamp: botMessage.timestamp
       };
     } catch (error) {
-      console.error('Error in ChatbotService.sendMessage:', error);
-      throw new Error(`Failed to process message: ${error.message}`);
+      console.error('❌ Error in ChatbotService.sendMessage:', error);
+      
+      // Provide fallback response on database errors
+      return {
+        response: this.getFallbackResponse(message),
+        conversationId: conversationId,
+        timestamp: new Date(),
+        fallback: true
+      };
     }
   }
 
@@ -75,14 +82,27 @@ class ChatbotService {
         lastActivity: conversation.lastActivity
       };
     } catch (error) {
-      console.error('Error in ChatbotService.getConversationHistory:', error);
-      throw new Error(`Failed to retrieve conversation history: ${error.message}`);
+      console.error('❌ Error in ChatbotService.getConversationHistory:', error);
+      
+      // Return empty conversation on database errors
+      return {
+        conversationId,
+        messages: [],
+        lastActivity: new Date(),
+        error: 'Unable to retrieve conversation history'
+      };
     }
   }
 
   async generateAIResponse(message, conversationHistory = []) {
     try {
       console.log('Generating AI response for message:', message);
+
+      // Check if Gemini AI is available
+      if (!geminiService.isServiceAvailable()) {
+        console.warn('⚠️  Gemini AI unavailable, using enhanced fallback response');
+        return this.getEnhancedFallbackResponse(message, conversationHistory);
+      }
 
       const messageLower = message.toLowerCase();
       
@@ -135,13 +155,13 @@ Response:`;
       // Use Gemini AI to generate response
       const aiResponse = await this.callGeminiAI(prompt);
       
-      console.log('AI response generated successfully');
+      console.log('✅ AI response generated successfully');
       return aiResponse;
     } catch (error) {
-      console.error('Error generating AI response:', error);
+      console.error('❌ Error generating AI response:', error);
       
       // Fallback responses based on message content
-      return this.getFallbackResponse(message);
+      return this.getEnhancedFallbackResponse(message, conversationHistory);
     }
   }
 
@@ -157,27 +177,75 @@ Response:`;
       
       return text.trim();
     } catch (error) {
-      console.error('Error calling Gemini AI:', error);
+      console.error('❌ Error calling Gemini AI:', error);
       throw error;
     }
   }
 
-  getFallbackResponse(message) {
+  // Enhanced fallback responses with context awareness
+  getEnhancedFallbackResponse(message, conversationHistory = []) {
     const messageLower = message.toLowerCase();
     
-    if (messageLower.includes('hello') || messageLower.includes('hi') || messageLower.includes('hey')) {
-      return "Hello! I'm here to help you with your web development needs. How can I assist you today?";
-    } else if (messageLower.includes('service') || messageLower.includes('what do you do')) {
-      return "We offer comprehensive web development services including custom websites, mobile apps, UI/UX design, e-commerce solutions, and performance optimization. What specific service are you interested in?";
-    } else if (messageLower.includes('price') || messageLower.includes('cost') || messageLower.includes('quote')) {
-      return "Our pricing varies based on project complexity. Basic websites start at $2,500, e-commerce solutions from $5,000, and mobile apps from $10,000. Would you like a detailed quote for your specific project?";
-    } else if (messageLower.includes('contact') || messageLower.includes('phone') || messageLower.includes('email')) {
-      return "You can reach us at info@webnaster.com or call us at 612-930-1390. We're located at 18234 80th Pl N, Maple Grove, MN 55311. Our office hours are Monday-Friday, 8am-6pm.";
-    } else if (messageLower.includes('timeline') || messageLower.includes('how long')) {
-      return "Project timelines depend on scope. Basic websites take 2-4 weeks, while custom applications can take 8-16 weeks. We'll provide a detailed timeline after understanding your requirements.";
-    } else {
-      return "I'd be happy to help you with information about our web development services, pricing, or answer any questions about your project. What would you like to know?";
+    // Check for greeting patterns
+    if (messageLower.includes('hello') || messageLower.includes('hi') || messageLower.includes('hey') || 
+        messageLower.includes('good morning') || messageLower.includes('good afternoon')) {
+      return "Hello! Welcome to Webnaster. I'm here to help you with your web development needs. Whether you're looking for a new website, mobile app, or have questions about our services, I'm ready to assist you. How can I help you today?";
     }
+    
+    // Service inquiry patterns
+    if (messageLower.includes('service') || messageLower.includes('what do you do') || 
+        messageLower.includes('what can you help') || messageLower.includes('offer')) {
+      return "We offer comprehensive web development services including:\n\n• Custom website development ($2,500-$8,000)\n• E-commerce solutions ($5,000-$15,000)\n• Mobile app development ($10,000-$50,000)\n• UI/UX design\n• Website redesign and optimization\n• Performance optimization\n\nWhich service interests you most? I'd be happy to provide more details and discuss your specific needs.";
+    }
+    
+    // Pricing inquiry patterns
+    if (messageLower.includes('price') || messageLower.includes('cost') || messageLower.includes('quote') || 
+        messageLower.includes('budget') || messageLower.includes('how much')) {
+      return "Our pricing depends on project complexity and requirements:\n\n• Basic websites: $2,500-$8,000\n• E-commerce sites: $5,000-$15,000\n• Web applications: $8,000-$25,000\n• Mobile apps: $10,000-$50,000\n• Website redesign: $3,000-$10,000\n\nWould you like a personalized quote? I can connect you with our team to discuss your specific project requirements.";
+    }
+    
+    // Contact inquiry patterns
+    if (messageLower.includes('contact') || messageLower.includes('phone') || messageLower.includes('email') || 
+        messageLower.includes('reach') || messageLower.includes('talk to')) {
+      return "Here's how you can reach us:\n\n📧 Email: info@webnaster.com\n📞 Phone: 612-930-1390\n📍 Address: 18234 80th Pl N, Maple Grove, MN 55311\n🕒 Hours: Monday-Friday, 8am-6pm\n\nFeel free to call or email us directly, or continue chatting here. We typically respond to emails within 24 hours during business days.";
+    }
+    
+    // Timeline inquiry patterns
+    if (messageLower.includes('timeline') || messageLower.includes('how long') || 
+        messageLower.includes('when') || messageLower.includes('time')) {
+      return "Project timelines vary based on scope and complexity:\n\n• Basic websites: 2-4 weeks\n• E-commerce sites: 4-8 weeks\n• Web applications: 8-16 weeks\n• Mobile apps: 10-20 weeks\n• Website redesign: 3-6 weeks\n\nWe'll provide a detailed timeline after understanding your specific requirements. What type of project are you considering?";
+    }
+    
+    // Technology/technical patterns
+    if (messageLower.includes('technology') || messageLower.includes('tech stack') || 
+        messageLower.includes('framework') || messageLower.includes('platform')) {
+      return "We work with modern, industry-standard technologies including:\n\n• Frontend: React, Vue.js, Angular, HTML5/CSS3\n• Backend: Node.js, Python, PHP\n• Databases: MongoDB, PostgreSQL, MySQL\n• Mobile: React Native, Flutter\n• Cloud: AWS, Google Cloud, Azure\n\nWe choose the best technology stack based on your project requirements. What type of project are you planning?";
+    }
+    
+    // Portfolio/examples patterns
+    if (messageLower.includes('portfolio') || messageLower.includes('examples') || 
+        messageLower.includes('previous work') || messageLower.includes('case studies')) {
+      return "We've worked on diverse projects across various industries including healthcare, e-commerce, finance, and education. Our portfolio includes custom web applications, e-commerce platforms, and mobile apps.\n\nTo see specific examples relevant to your industry or project type, I'd recommend scheduling a consultation with our team. Would you like me to connect you with someone who can show you case studies similar to your needs?";
+    }
+    
+    // Support/maintenance patterns
+    if (messageLower.includes('support') || messageLower.includes('maintenance') || 
+        messageLower.includes('update') || messageLower.includes('hosting')) {
+      return "We provide comprehensive post-launch support including:\n\n• Ongoing maintenance and updates\n• Security monitoring and patches\n• Performance optimization\n• Content management support\n• Hosting solutions\n• Technical support\n\nOur support packages are customized based on your needs. Are you looking for support on an existing website or planning for a new project?";
+    }
+    
+    // Default response with context awareness
+    const hasContext = conversationHistory.length > 0;
+    if (hasContext) {
+      return "I'd be happy to help you with more information about our web development services. Based on our conversation, it sounds like you're exploring your options. Is there a specific aspect of web development or our services you'd like to know more about?\n\nYou can also reach us directly at info@webnaster.com or 612-930-1390 for a detailed discussion.";
+    } else {
+      return "Welcome to Webnaster! I'm here to help you with information about our web development services, including custom websites, mobile apps, e-commerce solutions, and more.\n\nWhat brings you here today? Are you looking to build a new website, improve an existing one, or just exploring your options?";
+    }
+  }
+
+  // Simple fallback for compatibility
+  getFallbackResponse(message) {
+    return this.getEnhancedFallbackResponse(message, []);
   }
 }
 
