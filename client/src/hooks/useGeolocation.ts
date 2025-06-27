@@ -31,7 +31,7 @@ export const useGeolocation = () => {
 
         let locationData = null
 
-        // Try primary IP service
+        // Try primary IP service with CSP-safe error handling
         try {
           console.log('useGeolocation: Trying primary IP service')
           const response = await fetch('https://ipapi.co/json/', {
@@ -54,7 +54,8 @@ export const useGeolocation = () => {
             }
           }
         } catch (error) {
-          console.log('useGeolocation: Primary IP service failed:', error)
+          console.log('useGeolocation: Primary IP service failed (likely CSP-blocked):', error.message)
+          // CSP blocking is expected, continue to fallback
         }
 
         // If primary failed, use intelligent defaults based on common patterns
