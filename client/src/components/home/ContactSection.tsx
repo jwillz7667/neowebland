@@ -88,8 +88,8 @@ export function ContactSection() {
       console.log("Form reset completed")
     } catch (error) {
       console.error("=== CONTACT FORM SUBMISSION ERROR ===")
-      console.error("Error type:", error.constructor.name)
-      console.error("Error message:", error.message)
+      console.error("Error type:", error instanceof Error ? error.constructor.name : typeof error)
+      console.error("Error message:", error instanceof Error ? error.message : String(error))
       console.error("Full error object:", error)
       console.error("Timestamp:", new Date().toISOString())
       
