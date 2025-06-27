@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect } from "react"
 import { motion } from "framer-motion"
 import { ArrowDown, Sparkles, Zap, Palette } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -6,8 +6,6 @@ import { TypedText } from "@/components/common/TypedText"
 import { FloatingElements } from "@/components/common/FloatingElements"
 
 export function HeroSection() {
-  const videoRef = useRef<HTMLVideoElement>(null)
-
   useEffect(() => {
     console.log("HeroSection mounted")
   }, [])

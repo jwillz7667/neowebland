@@ -1,5 +1,6 @@
-import axios, { AxiosRequestConfig, AxiosError, InternalAxiosRequestConfig, AxiosInstance } from 'axios';
-import JSONbig from 'json-bigint';
+import axios, { AxiosRequestConfig, AxiosError, InternalAxiosRequestConfig } from 'axios';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const JSONbig = require('json-bigint');
 
 // Environment-based API configuration
 const getApiBaseUrl = (): string => {
@@ -36,7 +37,7 @@ const localApi = axios.create({
     (data) => {
       try {
         return JSONbig.parse(data);
-      } catch (error) {
+      } catch {
         return data;
       }
     }
@@ -93,9 +94,7 @@ localApi.interceptors.response.use(
   }
 );
 
-let accessToken: string | null = null;
-
-const getApiInstance = (url: string) => {
+const getApiInstance = () => {
   return localApi;
 };
 
@@ -108,7 +107,7 @@ const api = {
   // Generic request method
   request: async (config: AxiosRequestConfig) => {
     try {
-      const apiInstance = getApiInstance(config.url || '');
+      const apiInstance = getApiInstance();
       return await apiInstance(config);
     } catch (error) {
       throw handleApiError(error as AxiosError);
@@ -118,7 +117,7 @@ const api = {
   // GET method
   get: async (url: string, config?: AxiosRequestConfig) => {
     try {
-      const apiInstance = getApiInstance(url);
+      const apiInstance = getApiInstance();
       return await apiInstance.get(url, config);
     } catch (error) {
       throw handleApiError(error as AxiosError);
@@ -126,9 +125,9 @@ const api = {
   },
 
   // POST method
-  post: async (url: string, data?: any, config?: AxiosRequestConfig) => {
+  post: async (url: string, data?: unknown, config?: AxiosRequestConfig) => {
     try {
-      const apiInstance = getApiInstance(url);
+      const apiInstance = getApiInstance();
       return await apiInstance.post(url, data, config);
     } catch (error) {
       throw handleApiError(error as AxiosError);
@@ -136,9 +135,9 @@ const api = {
   },
 
   // PUT method
-  put: async (url: string, data?: any, config?: AxiosRequestConfig) => {
+  put: async (url: string, data?: unknown, config?: AxiosRequestConfig) => {
     try {
-      const apiInstance = getApiInstance(url);
+      const apiInstance = getApiInstance();
       return await apiInstance.put(url, data, config);
     } catch (error) {
       throw handleApiError(error as AxiosError);
@@ -148,7 +147,7 @@ const api = {
   // DELETE method
   delete: async (url: string, config?: AxiosRequestConfig) => {
     try {
-      const apiInstance = getApiInstance(url);
+      const apiInstance = getApiInstance();
       return await apiInstance.delete(url, config);
     } catch (error) {
       throw handleApiError(error as AxiosError);
@@ -170,11 +169,18 @@ const api = {
   getBaseUrl: () => API_BASE_URL,
 };
 
+// Interface for API error response
+interface ApiErrorData {
+  message?: string;
+  error?: string;
+}
+
 // Error handling utility
 function handleApiError(error: AxiosError): Error {
   if (error.response) {
     // Server responded with error status
-    const message = error.response.data?.message || error.response.data?.error || 'Server error';
+    const errorData = error.response.data as ApiErrorData;
+    const message = errorData?.message || errorData?.error || 'Server error';
     return new Error(`API Error (${error.response.status}): ${message}`);
   } else if (error.request) {
     // Request made but no response received

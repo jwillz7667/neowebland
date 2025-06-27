@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { MessageCircle, X, Send, Bot, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,12 @@ interface Message {
   content: string
   isBot: boolean
   timestamp: Date
+}
+
+interface ApiMessage {
+  content: string
+  isBot: boolean
+  timestamp: string
 }
 
 const quickQuestions = [
@@ -48,14 +54,7 @@ export function ChatBot() {
     scrollToBottom()
   }, [messages])
 
-  // Load conversation history when chat opens
-  useEffect(() => {
-    if (isOpen && conversationId && !historyLoaded) {
-      loadChatHistory()
-    }
-  }, [isOpen, conversationId, historyLoaded])
-
-  const loadChatHistory = async () => {
+  const loadChatHistory = useCallback(async () => {
     if (!conversationId) return
 
     try {
@@ -63,7 +62,7 @@ export function ChatBot() {
       const response = await getChatHistory(conversationId)
 
       if (response.success && response.conversation.messages.length > 0) {
-        const historyMessages = response.conversation.messages.map((msg: any, index: number) => ({
+        const historyMessages = response.conversation.messages.map((msg: ApiMessage, index: number) => ({
           id: `history_${index}`,
           content: msg.content,
           isBot: msg.isBot,
@@ -80,7 +79,14 @@ export function ChatBot() {
       // Don't show error toast for history loading failure
       setHistoryLoaded(true)
     }
-  }
+  }, [conversationId])
+
+  // Load conversation history when chat opens
+  useEffect(() => {
+    if (isOpen && conversationId && !historyLoaded) {
+      loadChatHistory()
+    }
+  }, [isOpen, conversationId, historyLoaded, loadChatHistory])
 
   const handleSendMessage = async (message: string) => {
     if (!message.trim()) return
@@ -117,11 +123,12 @@ export function ChatBot() {
       } else {
         throw new Error('Failed to get response from chatbot')
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error sending message:", error)
+      const errorMessage = error instanceof Error ? error.message : "Failed to send message. Please try again."
       toast({
         title: "Error",
-        description: error.message || "Failed to send message. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       })
 
