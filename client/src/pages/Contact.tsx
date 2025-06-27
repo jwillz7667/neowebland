@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { motion, useInView } from "framer-motion"
-import { Mail, Phone, MapPin, Clock, Send, MessageSquare, Users, Award, ArrowRight } from "lucide-react"
+import { Mail, Phone, MapPin, Clock, Send, MessageSquare, Users, Award } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -209,7 +209,7 @@ export function Contact() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16"
             >
-              {contactInfo.map((info, index) => (
+              {contactInfo.map((info) => (
                 <Card key={info.title} className="group bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
                   <CardContent className="p-6 text-center">
                     <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${info.color} p-4 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
